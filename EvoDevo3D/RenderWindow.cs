@@ -1,16 +1,13 @@
 ﻿using System;
-using System.Drawing;
+using SD = System.Drawing;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Windows.Forms;
-using Microsoft.DirectX;
-using D3D = Microsoft.DirectX.Direct3D;
-using System.Collections;
-using Microsoft.DirectX.Direct3D;
-
-
 using System.Threading;
+using System.Windows.Forms;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 
 namespace EvoDevo4
@@ -18,17 +15,17 @@ namespace EvoDevo4
     public class RenderWindow : Form
     {
         private Matrix cameraProjection = Matrix.Identity;
-        private D3D.Font TextRenderer;
+        private SpriteFont textRenderer;
         private Matrix cameraView = Matrix.Identity;
         private Vector mouseRay = new Vector();
         private Vector mousePos = new Vector();
         private System.ComponentModel.IContainer components;
-        private Microsoft.DirectX.Direct3D.Device device;
+		private GraphicsDevice device;
         private ArrayList celllist = new ArrayList();
-        private Mesh cellmesh;
+        private ModelMesh cellmesh;
         private System.Windows.Forms.Timer timer = new System.Windows.Forms.Timer();
-        private Material[] cellMaterial;
-        private Material selectedCellMaterial;
+//        private Material[] cellMaterial;
+//        private Material selectedCellMaterial;
         private bool deviceBlock = true;
         private int WIDTH = 256;
         private int HEIGHT = 256;
@@ -39,10 +36,10 @@ namespace EvoDevo4
         private Vector startDragPosition = new Vector();
         private bool isDragging= false;
         private Vector visualShift = new Vector();
-        private CustomVertex.PositionNormalColored[] vertices;
+        private VertexPositionColor[] vertices;
         private short[] indices;
-        private IndexBuffer ib;
-        private VertexBuffer vb;
+//        private IndexBuffer ib;
+//        private VertexBuffer vb;
         private Thread ColorReMapper;
         private float turnAxis1=0;
         private ToolStrip toolStrip1;
@@ -54,9 +51,9 @@ namespace EvoDevo4
         private ToolStripButton tsbClear;
         private System.Windows.Forms.Timer tmFPSChecker;
         private System.Windows.Forms.Timer tmWorldHeartbeat;
-        private Vector3 cameraPosition = new Vector3(0, 0, 200);
-        private Vector3 cameraLooksAt = new Vector3(0, 0, 0);
-        private Vector3 upVector = new Vector3(0, 0.5f, 0);
+//        private Vector3 cameraPosition = new Vector3(0, 0, 200);
+//        private Vector3 cameraLooksAt = new Vector3(0, 0, 0);
+//        private Vector3 upVector = new Vector3(0, 0.5f, 0);
         private float cameraPositionAngleAroundUpVector = 0;
         private float cameraPositionAngleAroundRightVector = 0;
         private CheckBox chb0Visible;
@@ -93,7 +90,7 @@ namespace EvoDevo4
             heartbeatThread.Start();
 
             this.SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.Opaque, true);
-            if (!InitializeDevice()) throw new Exception("DirectX initialization failed");
+            /*if (!InitializeDevice()) throw new Exception("DirectX initialization failed");
             SetUpCamera();
             InitializeObjects();
             VertexDeclaration();
@@ -102,10 +99,10 @@ namespace EvoDevo4
             timer.Tick += new EventHandler(timer_Tick);
             timer.Interval = 50;
             timer.Enabled = true;
-            gc.BringToFront();
+            */gc.BringToFront();
         }
 
-        void timer_Tick(object sender, EventArgs e)
+        /*void timer_Tick(object sender, EventArgs e)
         {
             Thread drawthread = new Thread(Draw);
             if (!nowPainting)
@@ -113,9 +110,9 @@ namespace EvoDevo4
                 nowPainting = true;
                 drawthread.Start();
             }
-        }
+        }*/
 
-        protected override void OnKeyDown(KeyEventArgs e)
+  /*      protected override void OnKeyDown(KeyEventArgs e)
         {
             Vector4 move = new Vector4(0, 0, 0, 0);
             Vector4 zoom = new Vector4(0, 0, 0, 0);
@@ -124,7 +121,7 @@ namespace EvoDevo4
             bool turnAroundRightVector = false;
             bool turnUpVectorItself = false;
             float upVectorTurn = 0;
-            right.Transform(Matrix.RotationAxis((cameraLooksAt - cameraPosition), (float)Math.PI / 2));
+            Vector4.Transform(right, Matrix.CreateFromAxisAngle((cameraLooksAt - cameraPosition), (float)Math.PI / 2));
             if (e.KeyData == Keys.Space)
                 screenshotAwaiting = true;
             if (e.KeyData == Keys.W && e.Modifiers != Keys.Shift)
@@ -218,7 +215,7 @@ namespace EvoDevo4
             if (turnAroundUpVector)
             {
                 Vector4 temp = new Vector4(cameraPosition.X - cameraLooksAt.X, cameraPosition.Y - cameraLooksAt.Y, cameraPosition.Z - cameraLooksAt.Z, 0);
-                temp.Transform(Matrix.RotationAxis(upVector, cameraPositionAngleAroundUpVector));
+                Vector4.Transform(temp, Matrix.CreateFromAxisAngle(upVector, cameraPositionAngleAroundUpVector));
        
                 cameraPosition.X = cameraLooksAt.X + temp.X;
                 cameraPosition.Y = cameraLooksAt.Y + temp.Y;
@@ -228,12 +225,12 @@ namespace EvoDevo4
             if (turnAroundRightVector)
             {
                 Vector4 temp = new Vector4(cameraPosition.X - cameraLooksAt.X, cameraPosition.Y - cameraLooksAt.Y, cameraPosition.Z - cameraLooksAt.Z, 0);
-                temp.Transform(Matrix.RotationAxis(new Vector3(right.X, right.Y, right.Z), cameraPositionAngleAroundRightVector));
+                Vector4.Transform(temp, Matrix.CreateFromAxisAngle(new Vector3(right.X, right.Y, right.Z), cameraPositionAngleAroundRightVector));
                 cameraPosition.X = cameraLooksAt.X + temp.X;
                 cameraPosition.Y = cameraLooksAt.Y + temp.Y;
                 cameraPosition.Z = cameraLooksAt.Z + temp.Z;
                 temp = new Vector4(upVector.X, upVector.Y, upVector.Z, 0);
-                temp.Transform(Matrix.RotationAxis(new Vector3(right.X, right.Y, right.Z), cameraPositionAngleAroundRightVector));
+                Vector4.Transform(temp, Matrix.CreateFromAxisAngle(new Vector3(right.X, right.Y, right.Z), cameraPositionAngleAroundRightVector));
                 upVector.X = temp.X;
                 upVector.Y = temp.Y;
                 upVector.Z = temp.Z;
@@ -243,7 +240,7 @@ namespace EvoDevo4
             {
                 Vector3 tempAxis = new Vector3(cameraPosition.X - cameraLooksAt.X, cameraPosition.Y - cameraLooksAt.Y, cameraPosition.Z - cameraLooksAt.Z);
                 Vector4 temp = new Vector4(upVector.X, upVector.Y, upVector.Z, 0);
-                temp.Transform(Matrix.RotationAxis(tempAxis, upVectorTurn));
+                Vector4.Transform(temp, Matrix.CreateFromAxisAngle(tempAxis, upVectorTurn));
                 upVector.X = temp.X;
                 upVector.Y = temp.Y;
                 upVector.Z = temp.Z;
@@ -274,7 +271,7 @@ namespace EvoDevo4
 
         private void Screenshot()
         {
-            Surface renderTarget = device.GetRenderTarget(0);
+            RenderTargetBinding renderTarget = device.GetRenderTargets()[0];
             DateTime n = DateTime.Now;
             if (!rendering)
             {
@@ -284,38 +281,40 @@ namespace EvoDevo4
             {
                 screenshotFile = "render_at_" + n.ToString("yyyy-MM-dd") + "_frame_" + frameNo++.ToString() + ".bmp";
             }
-            SurfaceLoader.Save(screenshotFile, ImageFileFormat.Bmp, renderTarget);
+//            SurfaceLoader.Save(screenshotFile, ImageFileFormat.Bmp, renderTarget);
             screenshotAwaiting = false;
-        }
-
+        }*/
+        /*
         private void InitializeTextOutput()
         {
+            //textRenderer = new SD.Font(SD.FontFamily.GenericMonospace, 8);
+        }
             System.Drawing.Font font = new System.Drawing.Font(FontFamily.GenericMonospace,8);
             TextRenderer = new Microsoft.DirectX.Direct3D.Font(device, font);
-        }
+        }*/
 
         protected override void OnMouseClick(MouseEventArgs e)
         {
             World.Instance.ReTarget(mouseRay, mousePos);
             base.OnMouseClick(e);
         }
-
+        /*
         protected override void OnMouseMove(MouseEventArgs e)
         {
             Vector3 near = new Vector3(e.X, e.Y, 0.3f);
             Vector3 far = new Vector3(e.X, e.Y, 1f);
             Viewport vp = new Viewport();
-            vp.MaxZ = 1;
-            vp.MinZ = 0;
+            vp.MaxDepth = 1;
+            vp.MinDepth = 0;
             vp.X = 0;
             vp.Y = 0;
             vp.Height = this.ClientSize.Height;
             vp.Width = this.ClientSize.Width;
 
-            Matrix transformation = Matrix.Translation((float)visualShift.x, (float)visualShift.y, 0);
+            Matrix transformation = Matrix.CreateTranslation((float)visualShift.x, (float)visualShift.y, 0);
             
-            near.Unproject(vp, cameraProjection,cameraView, transformation);
-            far.Unproject(vp, cameraProjection, cameraView, transformation);
+            vp.Unproject(near, cameraProjection, cameraView, transformation);
+            vp.Unproject(far, cameraProjection, cameraView, transformation);
             mouseRay = new Vector(far.X - near.X, far.Y - near.Y, far.Z - near.Z);
             mousePos = new Vector(near.X, near.Y, near.Z);
 
@@ -326,15 +325,9 @@ namespace EvoDevo4
             }
             
             base.OnMouseMove(e);
-        }
+        }*/
 
-  
-
-
-        
-      
-
-        private void ResetColorMap()
+        /*private void ResetColorMap()
         {
             if (World.Instance.ConcentrationsChanged)
             {
@@ -343,17 +336,19 @@ namespace EvoDevo4
 
                     for (int y = 0; y < HEIGHT; y++)
                     {
-                        vertices[x + y * WIDTH].Color = World.Instance.GetColor(new Vector(x - WIDTH / 2, y - HEIGHT / 2, 0)).ToArgb();
+                        vertices[x + y * WIDTH].Color = World.Instance.GetColor(new Vector(x - WIDTH / 2, y - HEIGHT / 2, 0));
                     }
                 }
-                vb.SetData(vertices, 0, LockFlags.None);
+                vb.SetData(vertices);
                 World.Instance.ConcentrationsChanged = false;
             }
         }
-        private void VertexDeclaration()
+ 
+		private void VertexDeclaration()
         {
-            vb = new VertexBuffer(typeof(CustomVertex.PositionNormalColored), WIDTH * HEIGHT, device, Usage.Dynamic | Usage.WriteOnly, CustomVertex.PositionColored.Format, Pool.Default);
-            vertices = new CustomVertex.PositionNormalColored[WIDTH * HEIGHT];
+            //vb = new VertexBuffer(typeof(VertexPositionColor), WIDTH * HEIGHT, device, Usage.Dynamic | Usage.WriteOnly, CustomVertex.PositionColored.Format, Pool.Default);
+            vb = new VertexBuffer(device, typeof(VertexPositionColor), WIDTH * HEIGHT, BufferUsage.WriteOnly);
+            vertices = new VertexPositionColor[WIDTH * HEIGHT];
             for (int x = 0; x < WIDTH; x++)
             {
 
@@ -361,16 +356,16 @@ namespace EvoDevo4
                 {
                     vertices[x + y * WIDTH].Position = new Vector3(x-WIDTH/2, (y-HEIGHT/2), -1);
                     //vertices[x + y * WIDTH].Color = World.Instance.GetColor(new Vector(x-WIDTH/2,y-HEIGHT/2)).ToArgb();
-                    vertices[x + y * WIDTH].Color = Color.White.ToArgb();
-                    vertices[x + y * WIDTH].Normal = new Vector3(0, 0, 1);
+                    vertices[x + y * WIDTH].Color = Color.White;
+                    //vertices[x + y * WIDTH].Normal = new Vector3(0, 0, 1);
                 }
             }
-            vb.SetData(vertices, 0, LockFlags.None);
+            vb.SetData(vertices);
         }
 
         private void IndicesDeclaration()
         {
-            ib = new IndexBuffer(typeof(short), (WIDTH - 1) * (HEIGHT - 1) * 6, device, Usage.WriteOnly, Pool.Default);
+            ib = new IndexBuffer(device, typeof(short), (WIDTH - 1) * (HEIGHT - 1) * 6, BufferUsage.WriteOnly);
             indices = new short[(WIDTH - 1) * (HEIGHT - 1) * 6];
 
             for (int x = 0; x < WIDTH - 1; x++)
@@ -387,7 +382,7 @@ namespace EvoDevo4
                     indices[(x + y * (WIDTH - 1)) * 6 + 5] = (short)((x + 1) + (y + 1) * WIDTH);
                 }
             }
-            ib.SetData(indices, 0, LockFlags.None);
+            ib.SetData(indices);
         }
 
         
@@ -398,7 +393,7 @@ namespace EvoDevo4
         {
             deviceBlock = true;
             if (device == null) return;
-            device.RenderState.Lighting = true;
+/*            device.RenderState.Lighting = true;
 
             device.Lights[0].Type = LightType.Directional;
             device.Lights[0].Diffuse = Color.White;
@@ -412,7 +407,7 @@ namespace EvoDevo4
 
             device.SamplerState[0].AddressU = TextureAddress.Mirror;
             device.SamplerState[0].AddressV = TextureAddress.Mirror;
-
+* /
            
 
             deviceBlock = false;
@@ -422,7 +417,7 @@ namespace EvoDevo4
         /// Sets up objects and graphical meshes
         /// </summary>
         private void InitializeObjects()
-        {
+        {/*
             cellMaterial = new Material[10];
             cellMaterial[0] = new Material();
             cellMaterial[0].Diffuse = Color.LightGray;
@@ -457,15 +452,16 @@ namespace EvoDevo4
 
             selectedCellMaterial = new Material();
             selectedCellMaterial.Diffuse = Color.Gray;
-            selectedCellMaterial.Ambient = Color.Gray;
-            cellmesh  = Mesh.Sphere(device, 1f, 20, 20);
-        }
+            selectedCellMaterial.Ambient = Color.Gray;* /
+            //cellmesh  = Mesh.Sphere(device, 1f, 20, 20);
+            cellmesh = new ModelMesh(device, 1f, 20, 20);
+        }*/
 
         /// <summary>
         /// Sets up connection to a device
         /// </summary>
         /// <returns>True if device was created successfully and false othewise</returns>
-        public bool InitializeDevice()
+        /*public bool InitializeDevice()
         {
             deviceBlock = true;
             PresentParameters presentParams = new PresentParameters();
@@ -474,7 +470,7 @@ namespace EvoDevo4
             presentParams.AutoDepthStencilFormat = DepthFormat.D24S8;
             presentParams.EnableAutoDepthStencil = true;
             
-            device = new D3D.Device(0, D3D.DeviceType.Hardware, this, CreateFlags.SoftwareVertexProcessing, presentParams);
+            device = new Device(0, DeviceType.Hardware, this, CreateFlags.SoftwareVertexProcessing, presentParams);
             if (device == null) return (false);
             device.RenderState.Lighting = true;
             device.RenderState.CullMode = Cull.None;
@@ -490,14 +486,14 @@ namespace EvoDevo4
             device.SamplerState[0].AddressU = TextureAddress.Mirror;
             device.SamplerState[0].AddressV = TextureAddress.Mirror;
             
-            device.DeviceResizing += new System.ComponentModel.CancelEventHandler(device_DeviceResizing);
+            //device.DeviceResizing += new System.ComponentModel.CancelEventHandler(device_DeviceResizing);
             device.DeviceReset += new EventHandler(device_DeviceReset);
             device.Disposing += new EventHandler(device_Disposing);
             
             
             deviceBlock = false;
             return (true);
-        }
+        }*/
 
         void device_Disposing(object sender, EventArgs e)
         {
@@ -515,7 +511,7 @@ namespace EvoDevo4
             deviceBlock = true;
         }
 
-        protected override void  OnSizeChanged(EventArgs e)
+        /*protected override void  OnSizeChanged(EventArgs e)
         {
             ReInitializeDevice();
             SetUpCamera();
@@ -534,10 +530,10 @@ namespace EvoDevo4
             cameraView = Matrix.LookAtLH(new Vector3(0f, 0f, 190f), new Vector3(0, 0, 0), new Vector3(0, 1, 0));
             device.Transform.Projection = cameraProjection;
             device.Transform.View = cameraView;            
-        }
+        }*/
 
         private bool nowPainting = false;
-        protected override void OnPaint(System.Windows.Forms.PaintEventArgs e)
+        /*protected override void OnPaint(System.Windows.Forms.PaintEventArgs e)
         {
             Thread drawthread = new Thread(Draw);
             if (!nowPainting)
@@ -546,10 +542,10 @@ namespace EvoDevo4
                 drawthread.Start();
             }
             base.OnPaint(e);
-        }
+        }*/
         
 
-        private void Draw()
+        /*private void Draw()
         {
             frames++;
             if (deviceBlock)
@@ -559,15 +555,16 @@ namespace EvoDevo4
             {
                 try
                 {
-                    device.Clear(ClearFlags.Target | ClearFlags.ZBuffer, Color.White, 1.0f, 0);
+                    //device.Clear(ClearFlags.Target | ClearFlags.ZBuffer, Color.White, 1.0f, 0);
+					device.Clear(Color.White);
                     PlaceCamera();
-                    device.BeginScene();
+                    //device.BeginScene();
 
 
-                    device.Transform.World = Matrix.Identity;
+                    //device.Transform.World = Matrix.Identity;
 
 
-                    device.VertexFormat = CustomVertex.PositionNormalColored.Format;
+                    device.VertexFormat = VertexPositionColor.Format;
                     device.SetStreamSource(0, vb, 0);
                     device.Indices = ib;
 
@@ -583,7 +580,7 @@ namespace EvoDevo4
                     DrawTargetData();
                     //DrawConcentrationsData();
                     
-                    device.EndScene();
+                    //device.EndScene();
                     if (screenshotAwaiting||rendering)
                         Screenshot();
 
@@ -595,7 +592,7 @@ namespace EvoDevo4
                     deviceBlock = true;
                     try
                     {
-                        device.EndScene();
+                        //device.EndScene();
                     }
                     catch (Exception)
                     {
@@ -626,12 +623,12 @@ namespace EvoDevo4
             device.Transform.Projection = cameraProjection;
             device.Transform.View = cameraView;            
         }
-        private CustomVertex.PositionNormalColored[] GetHexagonAroundSource(Source source)
+        private VertexPositionColor[] GetHexagonAroundSource(Source source)
         {
-            CustomVertex.PositionNormalColored[] cvertices = new CustomVertex.PositionNormalColored[14];
-            int colorCenter = Color.FromArgb((int)(150 * source.strength), source.color).ToArgb();
+            VertexPositionColor[] cvertices = new VertexPositionColor[14];
+            Color colorCenter = new Color((int)(150 * source.strength), source.color);
             double colorPower = source.strength * (Math.Pow(SignallingProtein.Array[source.secretID].pentration, 30));
-            int colorEdge = Color.FromArgb((int)(150 * colorPower), source.color).ToArgb();
+            Color colorEdge = new Color((int)(150 * colorPower), source.color);
 
 
             cvertices[0].Position = new Vector3(0, 0, 0);
@@ -640,7 +637,7 @@ namespace EvoDevo4
             Vector4 baseV = new Vector4(upVector.X * 60, upVector.Y * 60, upVector.Z * 60, 0);
             for (int i = 1; i < 14; i++)
             {
-                baseV.Transform(Matrix.RotationAxis(cameraLooksAt - cameraPosition, (float)Math.PI / 6));
+                Vector4.Transform(baseV, Matrix.CreateFromAxisAngle(cameraLooksAt - cameraPosition, (float)Math.PI / 6));
                 cvertices[i].Position = new Vector3(baseV.X, baseV.Y, baseV.Z);
                 cvertices[i].Color = colorEdge;
             }
@@ -648,7 +645,7 @@ namespace EvoDevo4
 
             for (int i = 0; i < 14; i++)
             {
-                cvertices[i].Normal =  cameraPosition - cameraLooksAt;
+                cvertices[i].Normal = cameraPosition - cameraLooksAt;
                 cvertices[i].Position = new Vector3(cvertices[i].Position.X + (float)source.position.x, cvertices[i].Position.Y + (float)source.position.y, cvertices[i].Position.Z + (float)source.position.z);
             }
             return cvertices;
@@ -660,7 +657,7 @@ namespace EvoDevo4
             device.RenderState.AlphaBlendEnable = true;
             device.RenderState.SourceBlend = Blend.SourceAlpha;
             device.RenderState.DestinationBlend = Blend.InvSourceAlpha;
-            device.VertexFormat = CustomVertex.PositionNormalColored.Format;
+            device.VertexFormat = VertexPositionColor.Format;
             List<Source> sortedSources = new List<Source>();
             foreach (Source source in World.Instance.Sources)
             {
@@ -670,8 +667,8 @@ namespace EvoDevo4
 
             foreach (Source source in sortedSources)
             {
-                CustomVertex.PositionNormalColored[] cvertices = GetHexagonAroundSource(source);                
-                device.DrawUserPrimitives(PrimitiveType.TriangleFan, 12, cvertices);
+                VertexPositionColor[] cvertices = GetHexagonAroundSource(source);                
+                device.DrawUserPrimitives(PrimitiveType.TriangleList, 12, cvertices);
             }
             device.RenderState.AlphaBlendEnable = false;
         }
@@ -687,7 +684,7 @@ namespace EvoDevo4
             if (cos < 0)
                 return -1;
             return 0;
-        }
+        }*/
         private void DrawConcentrationsData()
         {
             /*string outStr = "(";
@@ -699,7 +696,7 @@ namespace EvoDevo4
             }
             outStr += ")";*/
             string outStr = mouseRay.x + " " + mouseRay.y + " " + mouseRay.z;
-            TextRenderer.DrawText(null, outStr, new Point(10, this.ClientSize.Height - 40), Color.DarkGreen);
+            //TextRenderer.DrawText(null, outStr, new Point(10, this.ClientSize.Height - 40), Color.DarkGreen);
         }
 
         private void DrawTargetData()
@@ -708,10 +705,10 @@ namespace EvoDevo4
             {
                 Cell cell = World.Instance.selectionTarget;
                 
-                TextRenderer.DrawText(null, cell.ToString(), new Point(20, 28), Color.DarkBlue);
+                //TextRenderer.DrawText(null, cell.ToString(), new Point(20, 28), Color.DarkBlue);
             }
         }
-        private void DrawCells()
+        /*private void DrawCells()
         {
             device.SetTexture(0, null);
             foreach (Cell currenttarget in World.Instance.Cells.GetRange(0,World.Instance.Cells.Count))
@@ -772,7 +769,7 @@ namespace EvoDevo4
                 device.Material = selectedCellMaterial;
                 cellmesh.DrawSubset(0);
             }
-        }
+        }*/
         static Random random = new Random();
         
         private void InitializeComponent()
@@ -1076,7 +1073,7 @@ namespace EvoDevo4
             this.Name = "RenderWindow";
             this.Text = "EvoDevo 4";
             this.MouseUp += new System.Windows.Forms.MouseEventHandler(this.RenderWindow_MouseUp);
-            this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.RenderWindow_MouseDown);
+            //this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.RenderWindow_MouseDown);
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.RenderWindow_FormClosing);
             this.toolStrip1.ResumeLayout(false);
             this.toolStrip1.PerformLayout();
@@ -1085,21 +1082,21 @@ namespace EvoDevo4
 
         }
 
-        private void RenderWindow_MouseDown(object sender, MouseEventArgs e)
+        /*private void RenderWindow_MouseDown(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Left)
             {
                 Vector3 near = new Vector3(e.X, e.Y, 1f);
                 Viewport vp = new Viewport();
-                vp.MaxZ = 1;
-                vp.MinZ = 0;
+                vp.MaxDepth = 1;
+                vp.MinDepth = 0;
                 vp.X = 0;
                 vp.Y = 0;
                 vp.Height = this.ClientSize.Height;
                 vp.Width = this.ClientSize.Width;
 
-                Matrix transformation = Matrix.Translation((float)visualShift.x, (float)visualShift.y, 0);
-                near.Unproject(vp, cameraProjection, cameraView, transformation);
+                Matrix transformation = Matrix.CreateTranslation((float)visualShift.x, (float)visualShift.y, 0);
+                vp.Unproject(near, cameraProjection, cameraView, transformation);
                 near.X *= 0.95f;
                 near.Y *= 0.95f;
 
@@ -1111,7 +1108,7 @@ namespace EvoDevo4
             {
                 Console.WriteLine(e.Button);
             }
-        }
+        }*/
 
         private void RenderWindow_MouseUp(object sender, MouseEventArgs e)
         {

@@ -32,9 +32,9 @@ namespace EvoDevo4
             lblAction.Padding = Padding.Empty;
             lblAction.Margin = Padding.Empty;
             flpCodeHelpers.Controls.Add(lblAction);
-            rtCode.AutoComplete.List.Clear();
-            rtCode.AutoComplete.ListSeparator = ' ';
-            rtCode.AutoComplete.ListString = "";
+            //rtCode.AutoComplete.List.Clear();
+            //rtCode.AutoComplete.ListSeparator = ' ';
+            //rtCode.AutoComplete.ListString = "";
             foreach (string action in Cell.MemberMethods.Keys)
             {
                 Button btnAction = new Button();
@@ -53,7 +53,7 @@ namespace EvoDevo4
                 btnAction.Height = 22;
                 flpCodeHelpers.Controls.Add(btnAction);
                 //rtCode.AutoComplete.ListString+=(action.Trim()+";");
-                rtCode.AutoComplete.List.Add(action.Trim());
+                //rtCode.AutoComplete.List.Add(action.Trim());
             }
             Label lblProperties = new Label();
             lblProperties.Name = "aproperties";
@@ -83,7 +83,7 @@ namespace EvoDevo4
                 btnAction.Height = 22;
                 flpCodeHelpers.Controls.Add(btnAction);
                 //rtCode.AutoComplete.ListString+=(action.Trim()+";");
-                rtCode.AutoComplete.List.Add(action.Trim());
+                //rtCode.AutoComplete.List.Add(action.Trim());
             }
             
         }
@@ -92,7 +92,7 @@ namespace EvoDevo4
         {
             string invocation = "";
             invocation += ((string)(((Button)sender).Tag));
-            rtCode.Selection.Text = invocation;
+            //rtCode.Selection.Text = invocation;
             rtCode.Focus();
         }
 

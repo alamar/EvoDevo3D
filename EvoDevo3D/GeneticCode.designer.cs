@@ -35,9 +35,9 @@ namespace EvoDevo4
             this.btnLoad = new System.Windows.Forms.Button();
             this.btnSave = new System.Windows.Forms.Button();
             this.btnRun = new System.Windows.Forms.Button();
-            this.rtCode = new ScintillaNet.Scintilla();
+            this.rtCode = new System.Windows.Forms.TextBox();
             this.btnSaveNew = new System.Windows.Forms.Button();
-            ((System.ComponentModel.ISupportInitialize)(this.rtCode)).BeginInit();
+            //((System.ComponentModel.ISupportInitialize)(this.rtCode)).BeginInit();
             this.SuspendLayout();
             // 
             // flpCodeHelpers
@@ -85,19 +85,20 @@ namespace EvoDevo4
             // 
             // rtCode
             // 
-            this.rtCode.ConfigurationManager.Language = "cs";
+            this.rtCode.Multiline = true;
+            //this.rtCode.ConfigurationManager.Language = "cs";
             this.rtCode.Location = new System.Drawing.Point(163, 34);
             this.rtCode.Name = "rtCode";
             this.rtCode.Size = new System.Drawing.Size(584, 466);
-            this.rtCode.Styles.BraceBad.FontName = "Verdana";
-            this.rtCode.Styles.BraceLight.FontName = "Verdana";
-            this.rtCode.Styles.ControlChar.FontName = "Verdana";
-            this.rtCode.Styles.Default.FontName = "Verdana";
-            this.rtCode.Styles.IndentGuide.FontName = "Verdana";
-            this.rtCode.Styles.LastPredefined.FontName = "Verdana";
-            this.rtCode.Styles.LineNumber.FontName = "Verdana";
-            this.rtCode.Styles.Max.FontName = "Verdana";
-            this.rtCode.TabIndex = 6;
+            //this.rtCode.Styles.BraceBad.FontName = "Verdana";
+            //this.rtCode.Styles.BraceLight.FontName = "Verdana";
+            //this.rtCode.Styles.ControlChar.FontName = "Verdana";
+            //this.rtCode.Styles.Default.FontName = "Verdana";
+            //this.rtCode.Styles.IndentGuide.FontName = "Verdana";
+            //this.rtCode.Styles.LastPredefined.FontName = "Verdana";
+            //this.rtCode.Styles.LineNumber.FontName = "Verdana";
+            //this.rtCode.Styles.Max.FontName = "Verdana";
+            //this.rtCode.TabIndex = 6;
             // 
             // btnSaveNew
             // 
@@ -125,7 +126,7 @@ namespace EvoDevo4
             this.Text = "GeneticCode";
             this.Load += new System.EventHandler(this.GeneticCode_Load);
             this.Resize += new System.EventHandler(this.GeneticCode_Resize);
-            ((System.ComponentModel.ISupportInitialize)(this.rtCode)).EndInit();
+            //((System.ComponentModel.ISupportInitialize)(this.rtCode)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -138,7 +139,7 @@ namespace EvoDevo4
         private System.Windows.Forms.SaveFileDialog saveFileDialog1;
         private System.Windows.Forms.Button btnLoad;
         private System.Windows.Forms.OpenFileDialog openFileDialog1;
-        private ScintillaNet.Scintilla rtCode;
+        private System.Windows.Forms.TextBox rtCode;
         private System.Windows.Forms.Button btnSaveNew;
     }
 }

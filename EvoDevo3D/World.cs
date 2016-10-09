@@ -2,13 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Drawing;
 using System.Threading;
 using System.CodeDom.Compiler;
 using Microsoft.CSharp;
+using Microsoft.Xna.Framework;
 using System.Reflection;
-using Microsoft.DirectX;
-
 
 
 namespace EvoDevo4
@@ -118,7 +116,7 @@ namespace EvoDevo4
             if (b > 255)
                 b = 255;
 
-            retval = Color.FromArgb(r, g, b);
+            retval = new Color(r, g, b);
             return (retval);
         }
 
