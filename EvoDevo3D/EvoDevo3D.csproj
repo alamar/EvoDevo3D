@@ -130,6 +130,12 @@
     <Compile Include="WorldController.Designer.cs">
       <DependentUpon>WorldController.cs</DependentUpon>
     </Compile>
+    <Compile Include="EvoArea.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Primitives\GeometricPrimitive.cs" />
+    <Compile Include="Primitives\SpherePrimitive.cs" />
+    <Compile Include="Primitives\VertexPositionNormal.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="GeneticCode.resx">

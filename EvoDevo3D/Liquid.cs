@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Drawing;
-using System.Collections;
+using Microsoft.Xna.Framework;
 
 namespace EvoDevo4
 {
