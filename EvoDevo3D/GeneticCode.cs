@@ -96,7 +96,7 @@ namespace EvoDevo4
             rtCode.Focus();
         }
 
-        public void btnRun_Click(object sender, EventArgs e)
+        public void btnCompile_Click(object sender, EventArgs e)
         {
             World.Instance.paused = true;
             Cell.GeneticCode = rtCode.Text;
@@ -138,8 +138,6 @@ namespace EvoDevo4
                 }
                 fileName = saveFileDialog1.FileName;
             }
-
-            
         }
         private static void AddText(FileStream fs, string value)
         {
@@ -161,6 +159,8 @@ namespace EvoDevo4
                     rtCode.Text=sr.ReadToEnd();                    
                 }
                 this.Text = "Genetic Code - " + openFileDialog1.FileName;
+
+                btnCompile.PerformClick();
             }
             
         }
@@ -176,7 +176,7 @@ namespace EvoDevo4
             rtCode.Height = this.Height - 70;
             rtCode.Width = this.Width - 183;
 
-            btnRun.Left = this.Width - btnRun.Width - 10;
+            btnCompile.Left = this.Width - btnCompile.Width - 10;
         }
 
         private void btnSaveNew_Click(object sender, EventArgs e)

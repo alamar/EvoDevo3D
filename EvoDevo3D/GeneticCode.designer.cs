@@ -34,7 +34,7 @@ namespace EvoDevo4
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.btnLoad = new System.Windows.Forms.Button();
             this.btnSave = new System.Windows.Forms.Button();
-            this.btnRun = new System.Windows.Forms.Button();
+            this.btnCompile = new System.Windows.Forms.Button();
             this.rtCode = new System.Windows.Forms.TextBox();
             this.btnSaveNew = new System.Windows.Forms.Button();
             //((System.ComponentModel.ISupportInitialize)(this.rtCode)).BeginInit();
@@ -72,16 +72,16 @@ namespace EvoDevo4
             this.btnSave.UseVisualStyleBackColor = true;
             this.btnSave.Click += new System.EventHandler(this.btnSave_Click);
             // 
-            // btnRun
+            // btnCompile
             // 
-            this.btnRun.ImageAlign = System.Drawing.ContentAlignment.TopLeft;
-            this.btnRun.Location = new System.Drawing.Point(687, 2);
-            this.btnRun.Name = "btnRun";
-            this.btnRun.Size = new System.Drawing.Size(60, 26);
-            this.btnRun.TabIndex = 1;
-            this.btnRun.Text = "Compile";
-            this.btnRun.UseVisualStyleBackColor = true;
-            this.btnRun.Click += new System.EventHandler(this.btnRun_Click);
+            this.btnCompile.ImageAlign = System.Drawing.ContentAlignment.TopLeft;
+            this.btnCompile.Location = new System.Drawing.Point(687, 2);
+            this.btnCompile.Name = "btnCompile";
+            this.btnCompile.Size = new System.Drawing.Size(60, 26);
+            this.btnCompile.TabIndex = 1;
+            this.btnCompile.Text = "Compile";
+            this.btnCompile.UseVisualStyleBackColor = true;
+            this.btnCompile.Click += new System.EventHandler(this.btnCompile_Click);
             // 
             // rtCode
             // 
@@ -112,8 +112,8 @@ namespace EvoDevo4
             // 
             // GeneticCode
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            //this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            //this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(751, 509);
             this.ControlBox = false;
             this.Controls.Add(this.btnSaveNew);
@@ -121,7 +121,7 @@ namespace EvoDevo4
             this.Controls.Add(this.btnLoad);
             this.Controls.Add(this.btnSave);
             this.Controls.Add(this.flpCodeHelpers);
-            this.Controls.Add(this.btnRun);
+            this.Controls.Add(this.btnCompile);
             this.Name = "GeneticCode";
             this.Text = "GeneticCode";
             this.Load += new System.EventHandler(this.GeneticCode_Load);
@@ -133,7 +133,7 @@ namespace EvoDevo4
 
         #endregion
 
-        private System.Windows.Forms.Button btnRun;
+        private System.Windows.Forms.Button btnCompile;
         private System.Windows.Forms.FlowLayoutPanel flpCodeHelpers;
         private System.Windows.Forms.Button btnSave;
         private System.Windows.Forms.SaveFileDialog saveFileDialog1;
