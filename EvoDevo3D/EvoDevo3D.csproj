@@ -136,6 +136,7 @@
     <Compile Include="Primitives\GeometricPrimitive.cs" />
     <Compile Include="Primitives\SpherePrimitive.cs" />
     <Compile Include="Primitives\VertexPositionNormal.cs" />
+    <Compile Include="Support\ToolStripCheckBox.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="GeneticCode.resx">
@@ -207,4 +208,7 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  <ItemGroup>
+    <Folder Include="Support\" />
+  </ItemGroup>
 </Project>

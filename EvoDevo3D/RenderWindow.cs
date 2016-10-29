@@ -8,6 +8,7 @@ using System.Threading;
 using System.Windows.Forms;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using EvoDevo4.Support;
 
 
 namespace EvoDevo4
@@ -24,7 +25,7 @@ namespace EvoDevo4
         private int frameNo = 0;
         private string screenshotFile = @"screenshot.bmp";
         private float turnAxis1=0;
-        private ToolStrip toolStrip1;
+        private ToolStrip renderToolStrip;
         private ToolStripButton tsbPlay;
         private ToolStripButton tsbPause;
         private ToolStripButton tsbStep;
@@ -33,19 +34,11 @@ namespace EvoDevo4
         private ToolStripButton tsbClear;
         private System.Windows.Forms.Timer tmFPSChecker;
         private System.Windows.Forms.Timer tmWorldHeartbeat;
-        private CheckBox chb0Visible;
-        private CheckBox chb1Visible;
-        private CheckBox chb2Visible;
-        private CheckBox chb3Visible;
-        private CheckBox chb4Visible;
-        private CheckBox chb5Visible;
-        private CheckBox chb6Visible;
-        private CheckBox chb7Visible;
-        private CheckBox chb8Visible;
-        private CheckBox chb9Visible;
+        private ToolStripCheckBox[] chbVisible;
         private int cellSelectionIndex;
         private ToolStripLabel lblProcess;
         private ToolStripLabel lblCells;
+        private ToolStripLabel lblVisible;
 
 
         private Thread heartbeatThread;
@@ -116,7 +109,7 @@ namespace EvoDevo4
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            this.toolStrip1 = new System.Windows.Forms.ToolStrip();
+            this.renderToolStrip = new System.Windows.Forms.ToolStrip();
             this.tsbSnapshot = new System.Windows.Forms.ToolStripButton();
             this.tsbVideo = new System.Windows.Forms.ToolStripButton();
             this.tsbPlay = new System.Windows.Forms.ToolStripButton();
@@ -125,37 +118,34 @@ namespace EvoDevo4
             this.tsbClear = new System.Windows.Forms.ToolStripButton();
             this.tmFPSChecker = new System.Windows.Forms.Timer(this.components);
             this.tmWorldHeartbeat = new System.Windows.Forms.Timer(this.components);
-            this.chb0Visible = new System.Windows.Forms.CheckBox();
-            this.chb1Visible = new System.Windows.Forms.CheckBox();
-            this.chb2Visible = new System.Windows.Forms.CheckBox();
-            this.chb3Visible = new System.Windows.Forms.CheckBox();
-            this.chb4Visible = new System.Windows.Forms.CheckBox();
-            this.chb5Visible = new System.Windows.Forms.CheckBox();
-            this.chb6Visible = new System.Windows.Forms.CheckBox();
-            this.chb7Visible = new System.Windows.Forms.CheckBox();
-            this.chb8Visible = new System.Windows.Forms.CheckBox();
-            this.chb9Visible = new System.Windows.Forms.CheckBox();
+            this.chbVisible = new ToolStripCheckBox[10];
+            for (int i = 0; i < chbVisible.Length; i++)
+            {
+                this.chbVisible[i] = new ToolStripCheckBox();
+            }
             this.lblProcess = new System.Windows.Forms.ToolStripLabel();
             this.lblCells = new System.Windows.Forms.ToolStripLabel();
-            this.toolStrip1.SuspendLayout();
+            this.lblVisible = new System.Windows.Forms.ToolStripLabel();
+            this.renderToolStrip.SuspendLayout();
             this.SuspendLayout();
             // 
             // toolStrip1
             // 
-            this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.tsbSnapshot,
-            this.tsbVideo,
-            this.tsbPlay,
-            this.tsbPause,
-            this.tsbStep,
-            this.tsbClear,
-            this.lblProcess,
-            this.lblCells});
-            this.toolStrip1.Location = new System.Drawing.Point(0, 0);
-            this.toolStrip1.Name = "toolStrip1";
-            this.toolStrip1.Size = new System.Drawing.Size(792, 25);
-            this.toolStrip1.TabIndex = 0;
-            this.toolStrip1.Text = "toolStrip1";
+            this.renderToolStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+                    this.tsbSnapshot,
+                    this.tsbVideo,
+                    this.tsbPlay,
+                    this.tsbPause,
+                    this.tsbStep,
+                    this.tsbClear,
+                    this.lblProcess,
+                    this.lblCells});
+            this.renderToolStrip.Items.AddRange(chbVisible.Reverse().ToArray());
+            this.renderToolStrip.Items.Add(this.lblVisible);
+            this.renderToolStrip.Location = new System.Drawing.Point(0, 0);
+            this.renderToolStrip.Name = "renderToolStrip";
+            this.renderToolStrip.Size = new System.Drawing.Size(792, 25);
+            this.renderToolStrip.TabIndex = 0;
             // 
             // tsbSnapshot
             // 
@@ -232,182 +222,44 @@ namespace EvoDevo4
             this.tmWorldHeartbeat.Interval = 50;
             this.tmWorldHeartbeat.Tick += new System.EventHandler(this.tmWorldHeartbeat_Tick);
             // 
-            // chb0Visible
+            // chbVisible
             // 
-            this.chb0Visible.Appearance = System.Windows.Forms.Appearance.Button;
-            this.chb0Visible.AutoSize = true;
-            this.chb0Visible.Checked = true;
-            this.chb0Visible.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chb0Visible.Location = new System.Drawing.Point(0, 28);
-            this.chb0Visible.Name = "chb0Visible";
-            this.chb0Visible.Size = new System.Drawing.Size(23, 23);
-            this.chb0Visible.TabIndex = 1;
-            this.chb0Visible.TabStop = false;
-            this.chb0Visible.Text = "0";
-            this.chb0Visible.UseVisualStyleBackColor = true;
-            this.chb0Visible.KeyDown += new System.Windows.Forms.KeyEventHandler(this.chb9Visible_KeyDown);
-            // 
-            // chb1Visible
-            // 
-            this.chb1Visible.Appearance = System.Windows.Forms.Appearance.Button;
-            this.chb1Visible.AutoSize = true;
-            this.chb1Visible.Checked = true;
-            this.chb1Visible.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chb1Visible.Location = new System.Drawing.Point(0, 50);
-            this.chb1Visible.Name = "chb1Visible";
-            this.chb1Visible.Size = new System.Drawing.Size(23, 23);
-            this.chb1Visible.TabIndex = 2;
-            this.chb1Visible.TabStop = false;
-            this.chb1Visible.Text = "1";
-            this.chb1Visible.UseVisualStyleBackColor = true;
-            this.chb1Visible.KeyDown += new System.Windows.Forms.KeyEventHandler(this.chb9Visible_KeyDown);
-            // 
-            // chb2Visible
-            // 
-            this.chb2Visible.Appearance = System.Windows.Forms.Appearance.Button;
-            this.chb2Visible.AutoSize = true;
-            this.chb2Visible.Checked = true;
-            this.chb2Visible.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chb2Visible.Location = new System.Drawing.Point(0, 72);
-            this.chb2Visible.Name = "chb2Visible";
-            this.chb2Visible.Size = new System.Drawing.Size(23, 23);
-            this.chb2Visible.TabIndex = 3;
-            this.chb2Visible.TabStop = false;
-            this.chb2Visible.Text = "2";
-            this.chb2Visible.UseVisualStyleBackColor = true;
-            this.chb2Visible.KeyDown += new System.Windows.Forms.KeyEventHandler(this.chb9Visible_KeyDown);
-            // 
-            // chb3Visible
-            // 
-            this.chb3Visible.Appearance = System.Windows.Forms.Appearance.Button;
-            this.chb3Visible.AutoSize = true;
-            this.chb3Visible.Checked = true;
-            this.chb3Visible.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chb3Visible.Location = new System.Drawing.Point(0, 94);
-            this.chb3Visible.Name = "chb3Visible";
-            this.chb3Visible.Size = new System.Drawing.Size(23, 23);
-            this.chb3Visible.TabIndex = 4;
-            this.chb3Visible.TabStop = false;
-            this.chb3Visible.Text = "3";
-            this.chb3Visible.UseVisualStyleBackColor = true;
-            this.chb3Visible.KeyDown += new System.Windows.Forms.KeyEventHandler(this.chb9Visible_KeyDown);
-            // 
-            // chb4Visible
-            // 
-            this.chb4Visible.Appearance = System.Windows.Forms.Appearance.Button;
-            this.chb4Visible.AutoSize = true;
-            this.chb4Visible.Checked = true;
-            this.chb4Visible.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chb4Visible.Location = new System.Drawing.Point(0, 116);
-            this.chb4Visible.Name = "chb4Visible";
-            this.chb4Visible.Size = new System.Drawing.Size(23, 23);
-            this.chb4Visible.TabIndex = 5;
-            this.chb4Visible.TabStop = false;
-            this.chb4Visible.Text = "4";
-            this.chb4Visible.UseVisualStyleBackColor = true;
-            this.chb4Visible.KeyDown += new System.Windows.Forms.KeyEventHandler(this.chb9Visible_KeyDown);
-            // 
-            // chb5Visible
-            // 
-            this.chb5Visible.Appearance = System.Windows.Forms.Appearance.Button;
-            this.chb5Visible.AutoSize = true;
-            this.chb5Visible.Checked = true;
-            this.chb5Visible.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chb5Visible.Location = new System.Drawing.Point(0, 138);
-            this.chb5Visible.Name = "chb5Visible";
-            this.chb5Visible.Size = new System.Drawing.Size(23, 23);
-            this.chb5Visible.TabIndex = 6;
-            this.chb5Visible.TabStop = false;
-            this.chb5Visible.Text = "5";
-            this.chb5Visible.UseVisualStyleBackColor = true;
-            this.chb5Visible.KeyDown += new System.Windows.Forms.KeyEventHandler(this.chb9Visible_KeyDown);
-            // 
-            // chb6Visible
-            // 
-            this.chb6Visible.Appearance = System.Windows.Forms.Appearance.Button;
-            this.chb6Visible.AutoSize = true;
-            this.chb6Visible.Checked = true;
-            this.chb6Visible.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chb6Visible.Location = new System.Drawing.Point(0, 160);
-            this.chb6Visible.Name = "chb6Visible";
-            this.chb6Visible.Size = new System.Drawing.Size(23, 23);
-            this.chb6Visible.TabIndex = 7;
-            this.chb6Visible.TabStop = false;
-            this.chb6Visible.Text = "6";
-            this.chb6Visible.UseVisualStyleBackColor = true;
-            this.chb6Visible.KeyDown += new System.Windows.Forms.KeyEventHandler(this.chb9Visible_KeyDown);
-            // 
-            // chb7Visible
-            // 
-            this.chb7Visible.Appearance = System.Windows.Forms.Appearance.Button;
-            this.chb7Visible.AutoSize = true;
-            this.chb7Visible.Checked = true;
-            this.chb7Visible.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chb7Visible.Location = new System.Drawing.Point(0, 182);
-            this.chb7Visible.Name = "chb7Visible";
-            this.chb7Visible.Size = new System.Drawing.Size(23, 23);
-            this.chb7Visible.TabIndex = 8;
-            this.chb7Visible.TabStop = false;
-            this.chb7Visible.Text = "7";
-            this.chb7Visible.UseVisualStyleBackColor = true;
-            this.chb7Visible.KeyDown += new System.Windows.Forms.KeyEventHandler(this.chb9Visible_KeyDown);
-            // 
-            // chb8Visible
-            // 
-            this.chb8Visible.Appearance = System.Windows.Forms.Appearance.Button;
-            this.chb8Visible.AutoSize = true;
-            this.chb8Visible.Checked = true;
-            this.chb8Visible.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chb8Visible.Location = new System.Drawing.Point(0, 204);
-            this.chb8Visible.Name = "chb8Visible";
-            this.chb8Visible.Size = new System.Drawing.Size(23, 23);
-            this.chb8Visible.TabIndex = 9;
-            this.chb8Visible.TabStop = false;
-            this.chb8Visible.Text = "8";
-            this.chb8Visible.UseVisualStyleBackColor = true;
-            this.chb8Visible.KeyDown += new System.Windows.Forms.KeyEventHandler(this.chb9Visible_KeyDown);
-            // 
-            // chb9Visible
-            // 
-            this.chb9Visible.Appearance = System.Windows.Forms.Appearance.Button;
-            this.chb9Visible.AutoSize = true;
-            this.chb9Visible.Checked = true;
-            this.chb9Visible.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chb9Visible.Location = new System.Drawing.Point(0, 226);
-            this.chb9Visible.Name = "chb9Visible";
-            this.chb9Visible.Size = new System.Drawing.Size(23, 23);
-            this.chb9Visible.TabIndex = 10;
-            this.chb9Visible.TabStop = false;
-            this.chb9Visible.Text = "9";
-            this.chb9Visible.UseVisualStyleBackColor = true;
-            this.chb9Visible.KeyDown += new System.Windows.Forms.KeyEventHandler(this.chb9Visible_KeyDown);
+            for (int i = 0; i < chbVisible.Length; i++)
+            {
+                this.chbVisible[i].CheckBox.Appearance = System.Windows.Forms.Appearance.Button;
+                this.chbVisible[i].AutoSize = true;
+                this.chbVisible[i].CheckBox.Checked = true;
+                this.chbVisible[i].CheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
+                //this.chb0Visible.Location = new System.Drawing.Point(0, 28);
+                this.chbVisible[i].Name = "chbVisible" + i.ToString();
+                this.chbVisible[i].Size = new System.Drawing.Size(23, 23);
+                this.chbVisible[i].Text = i.ToString();
+                this.chbVisible[i].Alignment = ToolStripItemAlignment.Right;
+            }
             // 
             // lblProcess
             // 
             this.lblProcess.Name = "lblProcess";
-            this.lblProcess.Size = new System.Drawing.Size(86, 22);
+            this.lblVisible.AutoSize = true;
             this.lblProcess.Text = "Process: NONE";
             // 
             // lblCells
             // 
             this.lblCells.Name = "lblCells";
-            this.lblCells.Size = new System.Drawing.Size(44, 22);
+            this.lblVisible.AutoSize = true;
             this.lblCells.Text = "Cells: 1";
+            // 
+            // lblVisible
+            // 
+            this.lblVisible.Name = "lblVisible";
+            this.lblVisible.AutoSize = true;
+            this.lblVisible.Alignment = ToolStripItemAlignment.Right;
+            this.lblVisible.Text = "Toggle Cell Type Visibility:";
             // 
             // RenderWindow
             // 
             this.ClientSize = new System.Drawing.Size(792, 742);
-            this.Controls.Add(this.chb9Visible);
-            this.Controls.Add(this.chb8Visible);
-            this.Controls.Add(this.chb7Visible);
-            this.Controls.Add(this.chb6Visible);
-            this.Controls.Add(this.chb5Visible);
-            this.Controls.Add(this.chb4Visible);
-            this.Controls.Add(this.chb3Visible);
-            this.Controls.Add(this.chb2Visible);
-            this.Controls.Add(this.chb1Visible);
-            this.Controls.Add(this.chb0Visible);
-            this.Controls.Add(this.toolStrip1);
+            this.Controls.Add(this.renderToolStrip);
             this.KeyPreview = true;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
@@ -416,8 +268,8 @@ namespace EvoDevo4
             //this.MouseUp += new System.Windows.Forms.MouseEventHandler(this.RenderWindow_MouseUp);
             //this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.RenderWindow_MouseDown);
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.RenderWindow_FormClosing);
-            this.toolStrip1.ResumeLayout(false);
-            this.toolStrip1.PerformLayout();
+            this.renderToolStrip.ResumeLayout(false);
+            this.renderToolStrip.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -473,11 +325,6 @@ namespace EvoDevo4
         {
             
             World.Instance.newActionAllowed = true;
-        }
-
-        private void chb9Visible_KeyDown(object sender, KeyEventArgs e)
-        {
-            OnKeyDown(e);
         }
 
         private void tmFPSChecker_Tick(object sender, EventArgs e)
