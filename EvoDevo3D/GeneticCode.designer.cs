@@ -45,7 +45,7 @@ namespace EvoDevo4
             this.flpCodeHelpers.AutoScroll = true;
             this.flpCodeHelpers.Location = new System.Drawing.Point(1, 34);
             this.flpCodeHelpers.Name = "flpCodeHelpers";
-            this.flpCodeHelpers.Size = new System.Drawing.Size(156, 466);
+            this.flpCodeHelpers.Size = new System.Drawing.Size(160, 460);
             this.flpCodeHelpers.TabIndex = 2;
             // 
             // openFileDialog1
@@ -54,9 +54,9 @@ namespace EvoDevo4
             // 
             // btnLoad
             // 
-            this.btnLoad.Location = new System.Drawing.Point(163, 2);
+            this.btnLoad.Location = new System.Drawing.Point(165, 30);
             this.btnLoad.Name = "btnLoad";
-            this.btnLoad.Size = new System.Drawing.Size(45, 26);
+            this.btnLoad.Size = new System.Drawing.Size(50, 26);
             this.btnLoad.TabIndex = 5;
             this.btnLoad.Text = "Load";
             this.btnLoad.UseVisualStyleBackColor = true;
@@ -64,9 +64,9 @@ namespace EvoDevo4
             // 
             // btnSave
             // 
-            this.btnSave.Location = new System.Drawing.Point(265, 2);
+            this.btnSave.Location = new System.Drawing.Point(265, 30);
             this.btnSave.Name = "btnSave";
-            this.btnSave.Size = new System.Drawing.Size(62, 26);
+            this.btnSave.Size = new System.Drawing.Size(60, 26);
             this.btnSave.TabIndex = 4;
             this.btnSave.Text = "Save As";
             this.btnSave.UseVisualStyleBackColor = true;
@@ -74,8 +74,7 @@ namespace EvoDevo4
             // 
             // btnCompile
             // 
-            this.btnCompile.ImageAlign = System.Drawing.ContentAlignment.TopLeft;
-            this.btnCompile.Location = new System.Drawing.Point(687, 2);
+            this.btnCompile.Location = new System.Drawing.Point(690, 30);
             this.btnCompile.Name = "btnCompile";
             this.btnCompile.Size = new System.Drawing.Size(60, 26);
             this.btnCompile.TabIndex = 1;
@@ -87,9 +86,9 @@ namespace EvoDevo4
             // 
             this.rtCode.Multiline = true;
             //this.rtCode.ConfigurationManager.Language = "cs";
-            this.rtCode.Location = new System.Drawing.Point(163, 34);
+            this.rtCode.Location = new System.Drawing.Point(165, 60);
             this.rtCode.Name = "rtCode";
-            this.rtCode.Size = new System.Drawing.Size(584, 466);
+            this.rtCode.Size = new System.Drawing.Size(580, 460);
             //this.rtCode.Styles.BraceBad.FontName = "Verdana";
             //this.rtCode.Styles.BraceLight.FontName = "Verdana";
             //this.rtCode.Styles.ControlChar.FontName = "Verdana";
@@ -102,9 +101,9 @@ namespace EvoDevo4
             // 
             // btnSaveNew
             // 
-            this.btnSaveNew.Location = new System.Drawing.Point(214, 2);
+            this.btnSaveNew.Location = new System.Drawing.Point(215, 30);
             this.btnSaveNew.Name = "btnSaveNew";
-            this.btnSaveNew.Size = new System.Drawing.Size(45, 26);
+            this.btnSaveNew.Size = new System.Drawing.Size(50, 26);
             this.btnSaveNew.TabIndex = 7;
             this.btnSaveNew.Text = "Save";
             this.btnSaveNew.UseVisualStyleBackColor = true;
@@ -114,8 +113,7 @@ namespace EvoDevo4
             // 
             //this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             //this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(751, 509);
-            this.ControlBox = false;
+            this.ClientSize = new System.Drawing.Size(750, 500);
             this.Controls.Add(this.btnSaveNew);
             this.Controls.Add(this.rtCode);
             this.Controls.Add(this.btnLoad);

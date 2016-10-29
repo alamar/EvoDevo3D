@@ -12,8 +12,8 @@ namespace EvoDevo4
 {
     public partial class WorldController : Form
     {
-        private RenderWindow RENDERWINDOW;
-        private RenderWindow renderWindow
+        private GeneticCode RENDERWINDOW;
+        private GeneticCode renderWindow
         {
             get
             {
@@ -21,7 +21,7 @@ namespace EvoDevo4
             }
         }
         private Thread heartbeatThread;
-        public WorldController(RenderWindow rw)
+        public WorldController(GeneticCode rw)
         {
             InitializeComponent();
             RENDERWINDOW = rw;
@@ -80,12 +80,6 @@ namespace EvoDevo4
         private void btnScreenshot_Click(object sender, EventArgs e)
         {
             RENDERWINDOW.screenshotAwaiting = true;
-        }
-
-        private void button3_Click(object sender, EventArgs e)
-        {
-            RENDERWINDOW.rendering = !RENDERWINDOW.rendering;
-            ((Button)sender).Text = ((RENDERWINDOW.rendering) ? "Done" : "Render");            
         }
     }
 }
