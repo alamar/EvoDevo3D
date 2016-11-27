@@ -509,6 +509,10 @@ namespace EvoDevo4
                 //device.Clear(ClearFlags.Target | ClearFlags.ZBuffer, Color.White, 1.0f, 0);
 //                using (GraphicsDevice device = graphics.GraphicsDevice) {
 //                    device.Clear(Color.White);
+                if (simulation.paused) {
+                    cameraPosition = Vector3.Transform(cameraPosition - cameraLooksAt,
+                            Matrix.CreateFromAxisAngle(Vector3.Down, 0.01f)) + cameraLooksAt;
+                }
                     PlaceCamera();
                     //device.BeginScene();
 
@@ -563,9 +567,9 @@ namespace EvoDevo4
 
         private void PlaceCamera()
         {
-            effect.DirectionalLight0.DiffuseColor = Color.White.ToVector3();
+            /*effect.DirectionalLight0.DiffuseColor = Color.White.ToVector3();
             effect.DirectionalLight0.Direction = cameraLooksAt - cameraPosition;
-            effect.DirectionalLight0.Enabled = true;
+            effect.DirectionalLight0.Enabled = true;*/
             effect.EnableDefaultLighting();
 
             cameraProjection = Matrix.CreatePerspectiveFieldOfView((float)Math.PI / 8,
@@ -615,10 +619,9 @@ namespace EvoDevo4
             foreach (Source source in sortedSources)
             {
                 Matrix location = Matrix.CreateTranslation((float)source.position.x,
-                                    (float)source.position.y, (float)source.position.z)
-                                * cameraProjection;
+                                    (float)source.position.y, (float)source.position.z);
 
-                effect.Projection = location;
+                effect.World = location;
                 effect.DiffuseColor = source.color.ToVector3() * (0.05f * (float) source.strength);
                 effect.LightingEnabled = false;
                 foreach (SpherePrimitive concentrationSphere in concentrationSpheres) 
@@ -714,8 +717,7 @@ namespace EvoDevo4
                 Matrix location = /*Matrix.CreateScale((float)currenttarget.radius,
                             (float)currenttarget.radius, (float)currenttarget.radius)
                         */ Matrix.CreateTranslation((float)currenttarget.position.x,
-                            (float)currenttarget.position.y, (float)currenttarget.position.z)
-                        * cameraProjection; 
+                            (float)currenttarget.position.y, (float)currenttarget.position.z); 
                 Color currentMaterial;
                 if (currenttarget.color > 0 && currenttarget.color < 10)
                 {
@@ -726,7 +728,7 @@ namespace EvoDevo4
                     currentMaterial = cellMaterial[0];
                 }
 
-                effect.Projection = location;
+                effect.World = location;
                 effect.DiffuseColor = currentMaterial.ToVector3();
                 sphere.Draw(effect);
                 //cellmesh.DrawSubset(0);
