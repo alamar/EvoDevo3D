@@ -53,7 +53,7 @@ namespace EvoDevo4
 
         public static Vector operator /(Vector a, double b)
         {
-            if (b < World.ALMOST_ZERO) throw new ArgumentException("Division by almost zero.");
+            if (b < Simulation.ALMOST_ZERO) throw new ArgumentException("Division by almost zero.");
             return new Vector(a.x / b, a.y / b, a.z / b);
         }
 
@@ -99,11 +99,11 @@ namespace EvoDevo4
             v.y = y;
             v.z = z;
             double len = this.Length;
-            if (desiredLength < World.ALMOST_ZERO)
+            if (desiredLength < Simulation.ALMOST_ZERO)
             {
                 return new Vector(0.0, 0.0, 0.0);
             }
-            if (len > World.ALMOST_ZERO)
+            if (len > Simulation.ALMOST_ZERO)
             {
                 v.x *= 1.0 / len;
                 v.y *= 1.0 / len;
@@ -201,13 +201,13 @@ namespace EvoDevo4
             }
             set
             {
-                if (value < World.ALMOST_ZERO)
+                if (value < Simulation.ALMOST_ZERO)
                 {
                     this.x = 0;
                     this.y = 0;
                     this.z = 0;
                 }
-                if ((x*x+ y*y+z*z) > World.ALMOST_ZERO)
+                if ((x*x+ y*y+z*z) > Simulation.ALMOST_ZERO)
                 {
                     Vector temp = this.Normalize(value);
                     this.x = temp.x;

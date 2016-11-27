@@ -11,24 +11,14 @@ using System.Reflection;
 
 namespace EvoDevo4
 {
-    public class World
+    public class Simulation
     {
-        private static World INSTANCE=null;
-        public static World Instance
-        {
-            get
-            {
-                if (INSTANCE == null)
-                    INSTANCE = new World();
-                return (INSTANCE);
-            }
-        }
         public Queue<char> AwaitingQueue = new Queue<char>();
 
-        public string state = "NONE";
+        public enum State {None, Passive, Active};
+        public State state = State.None;
         public const double ALMOST_ZERO = 0.000001;
         public Cell selectionTarget;
-        private bool resetAwaiting = false;
         private bool PassiveMovementBlock = false;
         public volatile bool paused=true;
         public volatile bool newActionAllowed = false;
@@ -174,10 +164,10 @@ namespace EvoDevo4
             */
         }
 
-        public World()
+        public Simulation()
         {
             ConcentrationsChanged = true;
-            Cell newCell = Cell.GenerateRandomCell();
+            Cell newCell = Cell.GenerateRandomCell(this);
             newCell.radius = 1;
             newCell.position.Trivialize();
             Cells.Add(newCell);
@@ -296,7 +286,7 @@ namespace EvoDevo4
                             double movingLength = 0.0;
                             double distLimit = (cell.radius + neighbour.radius) * cell.resilience;
                             double dist = (cell.position - neighbour.position).Length;
-                            if (dist < distLimit && dist>World.ALMOST_ZERO)
+                            if (dist < distLimit && dist > Simulation.ALMOST_ZERO)
                             {
                                 movingLength = 0.1 * cell.radius * (1 - dist / distLimit);
                                 Vector temp = (cell.position - neighbour.position) * (movingLength / dist);
@@ -370,30 +360,15 @@ namespace EvoDevo4
                 }
             }
         }
-        public void Reset()
-        {
-            resetAwaiting = true;
-        }
-
 
         public void ActionsManager()
         {
             while (true)
             {
-                state = "NONE";
-                if (resetAwaiting)
-                {
-                    DoReset();
-                    resetAwaiting = false;
-                }
+                state = State.None;
                 while (paused || !newActionAllowed)
                 {
                     Thread.Sleep(40);
-                    if (resetAwaiting)
-                    {
-                        DoReset();
-                        resetAwaiting = false;
-                    }
                 }
 
 
@@ -403,15 +378,15 @@ namespace EvoDevo4
                     AwaitingQueue.Enqueue(nextAction);
                 if (nextAction == 'p') // passive
                 {
-                    state = "Passive";
+                    state = State.Passive;
                     Heartbeat();
-                    state = "NONE";
+                    state = State.None;
                 }
                 if (nextAction == 'a') //active
                 {
-                    state = "Active";
+                    state = State.Active;
                     GeneticTick();
-                    state = "NONE";
+                    state = State.None;
                 }
                 if (nextAction == 's') // stop
                 {
@@ -419,25 +394,6 @@ namespace EvoDevo4
                 }
 
             }
-        }
-
-        private void DoReset()
-        {
-            ConcentrationsChanged = true;
-            Cell newCell = Cell.GenerateRandomCell();
-            newCell.position.Trivialize();
-            newCell.radius = 1;
-            Cells.Clear();
-            Sources.Clear();
-          
-            Cells.Add(newCell);
-            AwaitingQueue.Clear();
-            AwaitingQueue.Enqueue('a');
-            AwaitingQueue.Enqueue('p');
-            AwaitingQueue.Enqueue('p');
-            AwaitingQueue.Enqueue('p');
-            AwaitingQueue.Enqueue('p');
-            AwaitingQueue.Enqueue('p');
         }
 
         public List<Cell> GetSurroungingCells(Cell cell)
@@ -490,10 +446,6 @@ namespace EvoDevo4
             }
         }
     }
-
- 
-
-
 
     public struct MapPos
     {

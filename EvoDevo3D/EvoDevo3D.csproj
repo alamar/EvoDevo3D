@@ -120,13 +120,6 @@
     <Compile Include="Source.cs" />
     <Compile Include="TestCell.cs" />
     <Compile Include="Vector.cs" />
-    <Compile Include="World.cs" />
-    <Compile Include="WorldController.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="WorldController.Designer.cs">
-      <DependentUpon>WorldController.cs</DependentUpon>
-    </Compile>
     <Compile Include="EvoArea.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -134,6 +127,7 @@
     <Compile Include="Primitives\SpherePrimitive.cs" />
     <Compile Include="Primitives\VertexPositionNormal.cs" />
     <Compile Include="Support\ToolStripCheckBox.cs" />
+    <Compile Include="Simulation.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="GeneticCode.resx">
@@ -143,10 +137,6 @@
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="WorldController.resx">
-      <DependentUpon>WorldController.cs</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>

@@ -10,6 +10,7 @@ namespace EvoDevo4
 {
     public class EvoArea : Game 
     {
+        private Simulation simulation;
         private Matrix cameraProjection = Matrix.Identity;
         private SpriteFont textRenderer;
         private Matrix cameraView = Matrix.Identity;
@@ -47,8 +48,9 @@ namespace EvoDevo4
         /// <summary>
         /// Creates new Render window instance;
         /// </summary>
-        public EvoArea() 
+        public EvoArea(Simulation simulation) 
         {
+            this.simulation = simulation;
             graphics = new GraphicsDeviceManager (this);
 
             graphics.PreferMultiSampling = true;
@@ -218,24 +220,24 @@ namespace EvoDevo4
             }
             if (e.KeyCode == Keys.Tab)
             {
-                if (World.Instance.selectionTarget == null)
+                if (simulation.selectionTarget == null)
                 {
-                    World.Instance.selectionTarget = World.Instance.Cells[0];
+                    simulation.selectionTarget = simulation.Cells[0];
                     cellSelectionIndex=0;
                 }
                 else
                 {
                     cellSelectionIndex++;
-                    if (World.Instance.Cells.Count<=cellSelectionIndex)
+                    if (simulation.Cells.Count<=cellSelectionIndex)
                     {
                         cellSelectionIndex=0;
                     }
-                    World.Instance.selectionTarget = World.Instance.Cells[cellSelectionIndex];
+                    simulation.selectionTarget = simulation.Cells[cellSelectionIndex];
                 }
             }
             if (e.KeyCode == Keys.Escape)
             {
-                World.Instance.selectionTarget = null;
+                simulation.selectionTarget = null;
             }
         }
 
@@ -265,7 +267,7 @@ namespace EvoDevo4
 
         /*protected override void OnMouseClick(MouseEventArgs e)
         {
-            World.Instance.ReTarget(mouseRay, mousePos);
+            simulation.ReTarget(mouseRay, mousePos);
             base.OnMouseClick(e);
         }*/
         /*
@@ -289,9 +291,9 @@ namespace EvoDevo4
             mousePos = new Vector(near.X, near.Y, near.Z);
 
 
-            if (World.Instance.Cells.Count < 500)
+            if (simulation.Cells.Count < 500)
             {
-                World.Instance.ReTarget(mouseRay, mousePos);
+                simulation.ReTarget(mouseRay, mousePos);
             }
             
             base.OnMouseMove(e);
@@ -299,18 +301,18 @@ namespace EvoDevo4
 
         private void ResetColorMap()
         {
-            if (World.Instance.ConcentrationsChanged)
+            if (simulation.ConcentrationsChanged)
             {
                 for (int x = 0; x < WIDTH; x++)
                 {
 
                     for (int y = 0; y < HEIGHT; y++)
                     {
-                        vertices[x + y * WIDTH].Color = World.Instance.GetColor(new Vector(x - WIDTH / 2, y - HEIGHT / 2, 0));
+                        vertices[x + y * WIDTH].Color = simulation.GetColor(new Vector(x - WIDTH / 2, y - HEIGHT / 2, 0));
                     }
                 }
                 vb.SetData(vertices);
-                World.Instance.ConcentrationsChanged = false;
+                simulation.ConcentrationsChanged = false;
             }
         }
  
@@ -325,7 +327,7 @@ namespace EvoDevo4
                 for (int y = 0; y < HEIGHT; y++)
                 {
                     vertices[x + y * WIDTH].Position = new Vector3(x-WIDTH/2, (y-HEIGHT/2), -1);
-                    //vertices[x + y * WIDTH].Color = World.Instance.GetColor(new Vector(x-WIDTH/2,y-HEIGHT/2)).ToArgb();
+                    //vertices[x + y * WIDTH].Color = simulation.GetColor(new Vector(x-WIDTH/2,y-HEIGHT/2)).ToArgb();
                     vertices[x + y * WIDTH].Color = Color.White;
                     //vertices[x + y * WIDTH].Normal = new Vector3(0, 0, 1);
                 }
@@ -494,15 +496,14 @@ namespace EvoDevo4
  
         protected override void Draw(GameTime gameTime)
         {
-            //SetUpCamera();
-            GraphicsDevice.Clear(Color.LightGray);//Color.GhostWhite);
-            //sphere.Draw(cameraView, cameraProjection);
-
-            //frames++;
-            if (deviceBlock)
+            if (deviceBlock || simulation.state != Simulation.State.None)
             {
                 return;
             }
+            //SetUpCamera();
+            GraphicsDevice.Clear(Color.LightGray);//Color.GhostWhite);
+
+            //frames++;
             try
             {
                 //device.Clear(ClearFlags.Target | ClearFlags.ZBuffer, Color.White, 1.0f, 0);
@@ -604,7 +605,7 @@ namespace EvoDevo4
         private void DrawConcentrations()
         {
             List<Source> sortedSources = new List<Source>();
-            foreach (Source source in World.Instance.Sources)
+            foreach (Source source in simulation.Sources)
             {
                 sortedSources.Add(source);
             }
@@ -654,7 +655,7 @@ namespace EvoDevo4
             {
                 if (i > 0)
                     outStr += ", ";
-                outStr += World.Instance.GetConcentration(mousePosition, i).ToString("f");
+                outStr += simulation.GetConcentration(mousePosition, i).ToString("f");
             }
             outStr += ")";* /
             string outStr = mouseRay.x + " " + mouseRay.y + " " + mouseRay.z;
@@ -663,9 +664,9 @@ namespace EvoDevo4
 
         /*private void DrawTargetData()
         {            
-            if (World.Instance.selectionTarget != null)
+            if (simulation.selectionTarget != null)
             {
-                Cell cell = World.Instance.selectionTarget;
+                Cell cell = simulation.selectionTarget;
                 
                 //TextRenderer.DrawText(null, cell.ToString(), new Point(20, 28), Color.DarkBlue);
             }
@@ -673,7 +674,7 @@ namespace EvoDevo4
         private void DrawCells()
         {
             //device.SetTexture(0, null);
-            foreach (Cell currenttarget in World.Instance.Cells.GetRange(0,World.Instance.Cells.Count))
+            foreach (Cell currenttarget in simulation.Cells.GetRange(0,simulation.Cells.Count))
             {
                 /*switch (currenttarget.cellType)
                 {
@@ -710,9 +711,9 @@ namespace EvoDevo4
 
                 }*/
                 /*device.Transform.World = */
-                Matrix location = Matrix.CreateScale((float)currenttarget.radius,
+                Matrix location = /*Matrix.CreateScale((float)currenttarget.radius,
                             (float)currenttarget.radius, (float)currenttarget.radius)
-                        * Matrix.CreateTranslation((float)currenttarget.position.x,
+                        */ Matrix.CreateTranslation((float)currenttarget.position.x,
                             (float)currenttarget.position.y, (float)currenttarget.position.z)
                         * cameraProjection; 
                 Color currentMaterial;
@@ -732,9 +733,9 @@ namespace EvoDevo4
 
 
             }
-            /*if (World.Instance.selectionTarget != null)
+            /*if (simulation.selectionTarget != null)
             {
-                Cell currenttarget = World.Instance.selectionTarget;
+                Cell currenttarget = simulation.selectionTarget;
                 //device.Transform.World = Matrix.Scaling((float)currenttarget.radius, (float)currenttarget.radius, (float)currenttarget.radius) * Matrix.Translation((float)currenttarget.position.x + (float)visualShift.x, (float)currenttarget.position.y + (float)visualShift.y, 0);
                 device.Transform.World = Matrix.Scaling((float)currenttarget.radius, (float)currenttarget.radius, (float)currenttarget.radius) * Matrix.Translation((float)currenttarget.position.x, (float)currenttarget.position.y, (float)currenttarget.position.z);
                 

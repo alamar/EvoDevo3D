@@ -34,6 +34,7 @@ namespace EvoDevo4
         private ToolStripLabel lblCells;
         private ToolStripLabel lblVisible;
 
+        private Simulation runningSimulation;
         private Thread heartbeatThread;
         private EvoArea evoArea;
         private Thread evoAreaThread;
@@ -109,13 +110,15 @@ namespace EvoDevo4
             }
 
             tmFPSChecker.Start();
-            heartbeatThread = new Thread(World.Instance.ActionsManager);
-            heartbeatThread.Start();
 
             this.KeyPreview = true;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.RenderWindow_FormClosing);
+        }
+
+        public bool runs() {
+            return runningSimulation != null;
         }
 
         public static CompilerResults CompileScript(string Source, string Reference, CodeDomProvider Provider)
@@ -227,7 +230,7 @@ namespace EvoDevo4
             this.tsbStep.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbStep.Name = "tsbStep";
             this.tsbStep.Size = new System.Drawing.Size(23, 22);
-            this.tsbStep.Text = "Step Froward";
+            this.tsbStep.Text = "Step Forward";
             this.tsbStep.Click += new System.EventHandler(this.tsbStep_Click);
             // 
             // tsbClear
@@ -304,40 +307,43 @@ namespace EvoDevo4
 
         public void btnCompile_Click(object sender, EventArgs e)
         {
-            World.Instance.paused = true;
             Cell.GeneticCode = rtCode.Text;
             if (Cell.Recompile())
             {
-                World.Instance.Reset();
+                runningSimulation = null;
             }
         }
 
         private void tsbPlay_Click(object sender, EventArgs e)
         {
-            if (evoArea == null)
-            {
-                evoArea = new EvoArea();
+            if (!runs()) {
+                Simulation simulation = new Simulation();
+                // XXX bad
+                heartbeatThread = new Thread(simulation.ActionsManager);
+                heartbeatThread.Start();
+                evoArea = new EvoArea(simulation);
                 evoAreaThread = new Thread(evoArea.Run);
                 evoAreaThread.Start();
+                this.runningSimulation = simulation;
             }
 
-            World.Instance.paused = !World.Instance.paused;
-            tsbPause.Enabled = !World.Instance.paused;
-            tsbPlay.Enabled = World.Instance.paused;
+            this.runningSimulation.paused = false;
+            tsbPause.Enabled = true;
+            tsbPlay.Enabled = false;
         }
 
         private void tsbPause_Click(object sender, EventArgs e)
         {
-            World.Instance.paused = !World.Instance.paused;
-            tsbPause.Enabled = !World.Instance.paused;
-            tsbPlay.Enabled = World.Instance.paused;
+            runningSimulation.paused = !runningSimulation.paused;
+            tsbPause.Enabled = !runningSimulation.paused;
+            tsbPlay.Enabled = runningSimulation.paused;
         }
 
         private void tsbStep_Click(object sender, EventArgs e)
         {
-            World.Instance.AwaitingQueue.Enqueue('s');
-            World.Instance.paused = false;
-            World.Instance.newActionAllowed = true;
+            runningSimulation.AwaitingQueue.Enqueue('s');
+            runningSimulation.paused = false;
+            runningSimulation.newActionAllowed = true;
             tsbPause.Enabled = false;
             tsbPlay.Enabled = true;
         }
@@ -356,22 +362,32 @@ namespace EvoDevo4
         {
             if (MessageBox.Show("This will reset the world to initial state. Are you sure?", "EvoDevo IV", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation) == DialogResult.Yes)
             {
-                World.Instance.Reset();
+                runningSimulation = null;
             }
         }
 
         private void tmWorldHeartbeat_Tick(object sender, EventArgs e)
         {
-
-            World.Instance.newActionAllowed = true;
+            if (runs())
+            {
+                runningSimulation.newActionAllowed = true;
+            }
         }
 
         private void tmFPSChecker_Tick(object sender, EventArgs e)
         {
-            lblProcess.Text = "Process: " + World.Instance.state;
-            lblCells.Text = "Cells: " + World.Instance.Cells.Count;
-            tsbPlay.Enabled = World.Instance.paused;
-            tsbPause.Enabled = !World.Instance.paused;
+            if (runs())
+            {
+                lblProcess.Text = "Process: " + runningSimulation.state;
+                lblCells.Text = "Cells: " + runningSimulation.Cells.Count;
+                tsbPlay.Enabled = runningSimulation.paused;
+                tsbPause.Enabled = !runningSimulation.paused;
+            }
+            else
+            {
+                tsbPlay.Enabled = true;
+                tsbPause.Enabled = false;
+            }
         }
 
         private void RenderWindow_FormClosing(object sender, FormClosingEventArgs e)

@@ -10,6 +10,7 @@ namespace EvoDevo4
 {
     public class Cell
     {
+        public Simulation simulation;
         public List<Cell> neighbours = new List<Cell>();
         public List<Cell> surroundingCells = new List<Cell>();
         public int ID=counter++;
@@ -33,7 +34,7 @@ namespace EvoDevo4
             }
             set
             {
-                if (value > World.ALMOST_ZERO && value < this.radius)
+                if (value > Simulation.ALMOST_ZERO && value < this.radius)
                     MOVINGSPEED = value;
             }
         }
@@ -50,7 +51,7 @@ namespace EvoDevo4
                 Vector[] retval = new Vector[SignallingProtein.Array.Count];
                 for (int i = 0; i < SignallingProtein.Array.Count; i++)
                 {
-                    retval[i] = World.Instance.GetGradient(position, i);
+                    retval[i] = simulation.GetGradient(position, i);
                 }
                 return retval;
             }
@@ -62,7 +63,7 @@ namespace EvoDevo4
                 double[] retval = new double[SignallingProtein.Array.Count];
                 for (int i = 0; i < SignallingProtein.Array.Count; i++)
                 {
-                    retval[i] = World.Instance .GetConcentration(position, i)*sensitivity[i];
+                    retval[i] = simulation.GetConcentration(position, i) * sensitivity[i];
                 }
                 return retval;
             }
@@ -71,7 +72,7 @@ namespace EvoDevo4
         {
             get
             {
-                return (World.Instance.GetMyAdjacentNeighbours(this).Count);
+                return (simulation.GetMyAdjacentNeighbours(this).Count);
             }
         }
         public List<Cell> connectedCells = new List<Cell>();
@@ -89,7 +90,7 @@ namespace EvoDevo4
                                 {
                                 public static Random random = new Random();
                                 public static Cell cell;
-                                public static void FixOrganizm() {World.Instance.FixOrganizm();}
+                                public static void FixOrganizm() {simulation.FixOrganizm();}
                                 public static double rnd
                                 {
                                     get
@@ -292,8 +293,9 @@ namespace EvoDevo4
         }
 
 
-        public Cell()
+        public Cell(Simulation simulation)
         {
+            this.simulation = simulation;
             position = new Vector();
             radius = 1;
             resilience = 0.8;
@@ -315,8 +317,9 @@ namespace EvoDevo4
             lastOffspring = null;
         }
 
-        public Cell(Vector position, double radius, double resilience)
+        public Cell(Simulation simulation, Vector position, double radius, double resilience)
         {
+            this.simulation = simulation;
             this.position = new Vector(position.x, position.y, position.z);
             this.radius = radius;
             this.resilience = resilience;
@@ -376,16 +379,20 @@ namespace EvoDevo4
             }
         }
 
-        public static Cell GenerateRandomCell()
+        public static Cell GenerateRandomCell(Simulation simulation)
         {
-            return (new Cell(new Vector(random.NextDouble() * 20 - 10, random.NextDouble() * 20 - 10, random.NextDouble() * 20 - 10), (0.875 + random.NextDouble() / 4), 0.8));
+            Vector startingVector = new Vector(random.NextDouble() * 20 - 10,
+                                        random.NextDouble() * 20 - 10,
+                                        random.NextDouble() * 20 - 10);
+            return new Cell(simulation, startingVector,
+                            (0.875 + random.NextDouble() / 4), 0.8);
         }
 
         public double EnvironmentalAccess
         {
             get
             {
-                List<Cell> touchingCells = World.Instance.GetMyAdjacentNeighbours(this);
+                List<Cell> touchingCells = simulation.GetMyAdjacentNeighbours(this);
                 
                 int fi1Sections = 4;
                 int fi2Sections = 4;
@@ -448,10 +455,11 @@ namespace EvoDevo4
         /// <returns></returns>
         public Cell SpawnWherever()
         {
-            Cell newCell = new Cell(this.position+(Vector.CreateRandom()*this.radius/5), this.radius, this.resilience);
+            Cell newCell = new Cell(simulation, this.position+(Vector.CreateRandom() * this.radius / 5),
+                    this.radius, this.resilience);
             numDivisions++;
             newCell.InheritFrom(this);
-            World.Instance.RegisterNewCell(newCell);
+            simulation.RegisterNewCell(newCell);
             return newCell;
         }
 
@@ -463,17 +471,17 @@ namespace EvoDevo4
         /// <returns></returns>
         public Cell SpawnGradient(int proteinID, bool alongGradient)
         {
-            Vector gradient = World.Instance.GetGradient(this.position, proteinID);
+            Vector gradient = simulation.GetGradient(this.position, proteinID);
             if (!alongGradient) gradient.Invert();
-            if (gradient.Length < World.ALMOST_ZERO)
+            if (gradient.Length < Simulation.ALMOST_ZERO)
             {
                 gradient = Vector.CreateRandom();
             }
             gradient *= this.radius / 5;
-            Cell newCell = new Cell(this.position + gradient, this.radius, this.resilience);
+            Cell newCell = new Cell(simulation, this.position + gradient, this.radius, this.resilience);
             numDivisions++;
             newCell.InheritFrom(this);
-            World.Instance.RegisterNewCell(newCell);
+            simulation.RegisterNewCell(newCell);
             return newCell;
         }
 
@@ -487,18 +495,18 @@ namespace EvoDevo4
         {
             double maxError = Math.PI  * epsilon / 180.0;
             double error = random.NextDouble() * 2 * maxError - maxError;
-            Vector gradient = World.Instance.GetGradient(this.position, proteinID);
+            Vector gradient = simulation.GetGradient(this.position, proteinID);
             if (!alongGradient) gradient.Invert();
             gradient.Turn(error);
-            if (gradient.Length < World.ALMOST_ZERO)
+            if (gradient.Length < Simulation.ALMOST_ZERO)
             {
                 gradient = Vector.CreateRandom();
             }
             gradient *= this.radius / 5;
-            Cell newCell = new Cell(this.position + gradient, this.radius, this.resilience);
+            Cell newCell = new Cell(simulation, this.position + gradient, this.radius, this.resilience);
             numDivisions++;
             newCell.InheritFrom(this);
-            World.Instance.RegisterNewCell(newCell);
+            simulation.RegisterNewCell(newCell);
             return newCell;
         }
 
@@ -512,18 +520,18 @@ namespace EvoDevo4
         {
             double maxError = epsilon;
             double error = random.NextDouble() * 2 * maxError - maxError;
-            Vector gradient = World.Instance.GetGradient(this.position, proteinID);
+            Vector gradient = simulation.GetGradient(this.position, proteinID);
             if (!alongGradient) gradient.Invert();
             gradient.Turn(error);
-            if (gradient.Length < World.ALMOST_ZERO)
+            if (gradient.Length < Simulation.ALMOST_ZERO)
             {
                 gradient = Vector.CreateRandom();
             }
             gradient *= this.radius / 5;
-            Cell newCell = new Cell(this.position + gradient, this.radius, this.resilience);
+            Cell newCell = new Cell(simulation, this.position + gradient, this.radius, this.resilience);
             numDivisions++;
             newCell.InheritFrom(this);
-            World.Instance.RegisterNewCell(newCell);
+            simulation.RegisterNewCell(newCell);
             return newCell;
         }
 
@@ -540,15 +548,15 @@ namespace EvoDevo4
             Vector gradient = this.polarization;
             if (!alongPolarization) gradient.Invert();
             gradient.Turn(error);
-            if (gradient.Length < World.ALMOST_ZERO)
+            if (gradient.Length < Simulation.ALMOST_ZERO)
             {
                 gradient = Vector.CreateRandom();
             }
             gradient *= this.radius / 5;
-            Cell newCell = new Cell(this.position + gradient, this.radius, this.resilience);
+            Cell newCell = new Cell(simulation, this.position + gradient, this.radius, this.resilience);
             numDivisions++;
             newCell.InheritFrom(this);
-            World.Instance.RegisterNewCell(newCell);
+            simulation.RegisterNewCell(newCell);
             return newCell;
         }
 
@@ -565,15 +573,15 @@ namespace EvoDevo4
             Vector gradient = this.polarization;
             if (!alongPolarization) gradient.Invert();
             gradient.Turn(error);
-            if (gradient.Length < World.ALMOST_ZERO)
+            if (gradient.Length < Simulation.ALMOST_ZERO)
             {
                 gradient = Vector.CreateRandom();
             }
             gradient *= this.radius / 5;
-            Cell newCell = new Cell(this.position + gradient, this.radius, this.resilience);
+            Cell newCell = new Cell(simulation, this.position + gradient, this.radius, this.resilience);
             numDivisions++;
             newCell.InheritFrom(this);
-            World.Instance.RegisterNewCell(newCell);
+            simulation.RegisterNewCell(newCell);
             return newCell;
         }
 
@@ -587,15 +595,15 @@ namespace EvoDevo4
 
             Vector gradient = this.polarization;
             if (!alongPolarization) gradient.Invert();
-            if (gradient.Length < World.ALMOST_ZERO)
+            if (gradient.Length < Simulation.ALMOST_ZERO)
             {
                 gradient = Vector.CreateRandom();
             }
             gradient *= this.radius / 5;
-            Cell newCell = new Cell(this.position + gradient, this.radius, this.resilience);
+            Cell newCell = new Cell(simulation, this.position + gradient, this.radius, this.resilience);
             numDivisions++;
             newCell.InheritFrom(this);
-            World.Instance.RegisterNewCell(newCell);
+            simulation.RegisterNewCell(newCell);
             return newCell;
         }
 
@@ -607,15 +615,15 @@ namespace EvoDevo4
         {
 
             Vector gradient = this.polarization;
-            if (gradient.Length < World.ALMOST_ZERO)
+            if (gradient.Length < Simulation.ALMOST_ZERO)
             {
                 gradient = Vector.CreateRandom();
             }
             gradient *= this.radius / 5;
-            Cell newCell = new Cell(this.position + gradient, this.radius, this.resilience);
+            Cell newCell = new Cell(simulation, this.position + gradient, this.radius, this.resilience);
             numDivisions++;
             newCell.InheritFrom(this);
-            World.Instance.RegisterNewCell(newCell);
+            simulation.RegisterNewCell(newCell);
             return newCell;
         }
 
@@ -665,7 +673,7 @@ namespace EvoDevo4
             try
             {
                 BreakFree();
-                World.Instance.UnregisterCell(this);
+                simulation.UnregisterCell(this);
                 this.parent.offspring.Remove(this);
             }
             catch (Exception)
@@ -678,7 +686,7 @@ namespace EvoDevo4
             if (!this.secrettingNow[proteinID])
             {
                 this.secrettingNow[proteinID] = true;
-                World.Instance.Register(new Source(proteinID, this.secretLevel[proteinID], this));                
+                simulation.Register(new Source(proteinID, this.secretLevel[proteinID], this));                
             }
         }
 
@@ -687,7 +695,7 @@ namespace EvoDevo4
             if (this.secrettingNow[proteinID])
             {
                 this.secrettingNow[proteinID] = false;
-                World.Instance.UnRegister(proteinID, this);
+                simulation.UnRegister(proteinID, this);
             }
         }
 
@@ -725,7 +733,7 @@ namespace EvoDevo4
 
         public void BreakFree()
         {
-            lock (World.Instance.Cells)
+            lock (simulation.Cells)
             {
                 foreach (Cell cell in connectedCells.GetRange(0,connectedCells.Count))
                 {
@@ -759,7 +767,7 @@ namespace EvoDevo4
         {
             if ((!IsMoving) || (Force))  // If I'm not moving already or am forced to
             {
-                if (polarization.Length > World.ALMOST_ZERO)
+                if (polarization.Length > Simulation.ALMOST_ZERO)
                 {
                     activeMovingDirection = polarization.Clone();
                 }
@@ -786,7 +794,7 @@ namespace EvoDevo4
             {
                 if (Polarized)
                 {
-                    if (polarization.Length > World.ALMOST_ZERO)
+                    if (polarization.Length > Simulation.ALMOST_ZERO)
                     {
                         activeMovingDirection = polarization.Clone();
                     }
@@ -819,7 +827,7 @@ namespace EvoDevo4
             {
                 if (Polarized)
                 {
-                    if (polarization.Length > World.ALMOST_ZERO)
+                    if (polarization.Length > Simulation.ALMOST_ZERO)
                     {
                         activeMovingDirection = polarization.Clone();
                     }
@@ -848,9 +856,9 @@ namespace EvoDevo4
         {
             if ((!IsMoving))  // If I'm not moving already
             {
-                Vector gradient = World.Instance.GetGradient(this.position, proteinID);
+                Vector gradient = simulation.GetGradient(this.position, proteinID);
 
-                if (gradient.Length > World.ALMOST_ZERO)
+                if (gradient.Length > Simulation.ALMOST_ZERO)
                 {
                     activeMovingDirection = gradient;
                 }
@@ -877,9 +885,9 @@ namespace EvoDevo4
         {
             if ((!IsMoving) || (Force))  // If I'm not moving already or am forced to
             {
-                Vector gradient = World.Instance.GetGradient(this.position, proteinID);
+                Vector gradient = simulation.GetGradient(this.position, proteinID);
 
-                if (gradient.Length > World.ALMOST_ZERO)
+                if (gradient.Length > Simulation.ALMOST_ZERO)
                 {
                     activeMovingDirection = gradient;
                 }
@@ -907,10 +915,10 @@ namespace EvoDevo4
         {
             if ((!IsMoving) || (Force))  // If I'm not moving already or am forced to
             {
-                Vector gradient = World.Instance.GetGradient(this.position, proteinID);
+                Vector gradient = simulation.GetGradient(this.position, proteinID);
                 if (AlongGradient)
                 {
-                    if (gradient.Length > World.ALMOST_ZERO)
+                    if (gradient.Length > Simulation.ALMOST_ZERO)
                     {
                         activeMovingDirection = gradient;
                     }
@@ -921,7 +929,7 @@ namespace EvoDevo4
                 }
                 else
                 {
-                    if (gradient.Length > World.ALMOST_ZERO)
+                    if (gradient.Length > Simulation.ALMOST_ZERO)
                     {
                         activeMovingDirection = gradient;
                         activeMovingDirection.Invert();
@@ -950,10 +958,10 @@ namespace EvoDevo4
         {
             if ((!IsMoving) || (Force))  // If I'm not moving already or am forced to
             {
-                Vector gradient = World.Instance.GetGradient(this.position, proteinID);
+                Vector gradient = simulation.GetGradient(this.position, proteinID);
                 if (AlongGradient)
                 {
-                    if (gradient.Length > World.ALMOST_ZERO)
+                    if (gradient.Length > Simulation.ALMOST_ZERO)
                     {
                         activeMovingDirection = gradient;
                     }
@@ -964,7 +972,7 @@ namespace EvoDevo4
                 }
                 else
                 {
-                    if (gradient.Length > World.ALMOST_ZERO)
+                    if (gradient.Length > Simulation.ALMOST_ZERO)
                     {
                         activeMovingDirection = gradient;
                         activeMovingDirection.Invert();
