@@ -178,7 +178,6 @@
     <None Include="step.png" />
     <None Include="snapshot.png" />
     <None Include="video.gif" />
-    <Content Include="WorldControllerHelp.xml" />
   </ItemGroup>
   <ItemGroup>
     <WCFMetadata Include="Service References\" />
