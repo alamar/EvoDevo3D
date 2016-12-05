@@ -37,7 +37,7 @@ namespace EvoDevo4
         private float turnAxis1=0;
         private Vector3 cameraPosition = new Vector3(0, 0, 200);
         private Vector3 cameraLooksAt = new Vector3(0, 0, 0);
-        private Vector3 upVector = new Vector3(0, 0.5f, 0);
+        private Vector3 upVector = new Vector3(0, 1, 0);
         private float cameraPositionAngleAroundUpVector = 0;
         private float cameraPositionAngleAroundRightVector = 0;
         private GraphicsDeviceManager graphics;
@@ -81,12 +81,12 @@ namespace EvoDevo4
             }
             this.forceRedraw = true;
 
-            Vector4 move = new Vector4(0, 0, 0, 0);
-            Vector4 zoom = new Vector4(0, 0, 0, 0);
-            Vector4 camera = new Vector4(cameraPosition.X - cameraLooksAt.X, cameraPosition.Y - cameraLooksAt.Y, cameraPosition.Z - cameraLooksAt.Z, 0);
-            Vector4 right = new Vector4(upVector.Y, upVector.Z, upVector.X, 0);
-//                Matrix.CreateFromAxisAngle((cameraLooksAt - cameraPosition), (float)Math.PI / 2));
-//            Vector4 right = Vector4.Transform(camera, Matrix.CreateFromAxisAngle(upVector, (float)Math.PI / 2));
+            Vector3 move = Vector3.Zero;
+            Vector3 zoom = Vector3.Zero;
+            Vector3 normalCamera = cameraLooksAt - cameraPosition;
+            normalCamera.Normalize();
+            Vector3 rightVector = Vector3.Transform(upVector,
+                    Matrix.CreateFromAxisAngle(normalCamera, (float)Math.PI / 2));
 
             bool turnAroundUpVector = false;
             bool turnAroundRightVector = false;
@@ -98,46 +98,44 @@ namespace EvoDevo4
                 screenshotAwaiting = true;
             if (keyboard.IsKeyDown(Keys.W) && !shiftPressed)
             {
-                cameraPositionAngleAroundRightVector = -0.1f;
+                cameraPositionAngleAroundRightVector = +0.1f;
                 turnAroundRightVector = true;
             }
             if (keyboard.IsKeyDown(Keys.S) && !shiftPressed)
             {
-                cameraPositionAngleAroundRightVector = +0.1f;
+                cameraPositionAngleAroundRightVector = -0.1f;
                 turnAroundRightVector = true;
             }
             if (keyboard.IsKeyDown(Keys.A) && !shiftPressed)
             {
-                cameraPositionAngleAroundUpVector = -0.1f;
+                cameraPositionAngleAroundUpVector = +0.1f;
                 turnAroundUpVector = true;
             }
             if (keyboard.IsKeyDown(Keys.D) && !shiftPressed)
             {
-                cameraPositionAngleAroundUpVector = 0.1f;
+                cameraPositionAngleAroundUpVector = -0.1f;
                 turnAroundUpVector = true;
             }
             if (keyboard.IsKeyDown(Keys.Q))
             {
-                upVectorTurn = 0.1f;
+                upVectorTurn = -0.1f;
                 turnUpVectorItself = true;
             }
             if (keyboard.IsKeyDown(Keys.E))
             {
-                upVectorTurn = -0.1f;
+                upVectorTurn = +0.1f;
                 turnUpVectorItself = true;
             }
             if (keyboard.IsKeyDown(Keys.Right) || (shiftPressed && keyboard.IsKeyDown(Keys.D)))
-                move += right;
+                move -= rightVector;
             if (keyboard.IsKeyDown(Keys.Left) || (shiftPressed && keyboard.IsKeyDown(Keys.A)))
-                move -= right;
+                move += rightVector;
             if (keyboard.IsKeyDown(Keys.Up) || (shiftPressed && keyboard.IsKeyDown(Keys.W)))
-                move -= new Vector4(upVector.X, upVector.Y, upVector.Z, 0);
+                move -= upVector;
             if (keyboard.IsKeyDown(Keys.Down) || (shiftPressed && keyboard.IsKeyDown(Keys.S)))
-                move += new Vector4(upVector.X, upVector.Y, upVector.Z, 0);
+                move += upVector;
 
-            Vector4 dst = new Vector4((cameraPosition.X - cameraLooksAt.X) / 100,
-                (cameraPosition.Y - cameraLooksAt.Y) / 100,
-                (cameraPosition.Z - cameraLooksAt.Z) / 100, 0);
+            Vector3 dst = (cameraPosition - cameraLooksAt) / 100f;
             if (shiftPressed)
             {
                 dst *= 10f;
@@ -148,58 +146,40 @@ namespace EvoDevo4
             }
             if (keyboard.IsKeyDown(Keys.R))
             {
-                zoom -= dst;
+                zoom += dst;
             }
             if (keyboard.IsKeyDown(Keys.F))
             {
-                zoom += dst;
+                zoom -= dst;
             }
             if (move.Length() > 0)
             {                
-                cameraPosition.X += move.X;
-                cameraPosition.Y += move.Y;
-                cameraPosition.Z += move.Z;
-                cameraLooksAt.X += move.X;
-                cameraLooksAt.Y += move.Y;
-                cameraLooksAt.Z += move.Z;
-                return;
+                cameraPosition += move;
+                cameraLooksAt += move;
             }
             if (zoom.Length() > 0)
             {
-                cameraPosition.X += zoom.X;
-                cameraPosition.Y += zoom.Y;
-                cameraPosition.Z += zoom.Z;
-                return;
+                cameraPosition += zoom;
             }
             if (turnAroundUpVector)
             {
-                Vector4 temp = Vector4.Transform(camera, Matrix.CreateFromAxisAngle(upVector, cameraPositionAngleAroundUpVector));
-       
-                cameraPosition.X = cameraLooksAt.X + temp.X;
-                cameraPosition.Y = cameraLooksAt.Y + temp.Y;
-                cameraPosition.Z = cameraLooksAt.Z + temp.Z;
-                return;
+                cameraPosition = Vector3.Transform(cameraPosition - cameraLooksAt,
+                        Matrix.CreateFromAxisAngle(upVector, cameraPositionAngleAroundUpVector)) + cameraLooksAt;
             }
             if (turnAroundRightVector)
             {
-                Vector4 temp = Vector4.Transform(camera, Matrix.CreateFromAxisAngle(new Vector3(right.X, right.Y, right.Z), cameraPositionAngleAroundRightVector));
-                cameraPosition.X = cameraLooksAt.X + temp.X;
-                cameraPosition.Y = cameraLooksAt.Y + temp.Y;
-                cameraPosition.Z = cameraLooksAt.Z + temp.Z;
-                temp = Vector4.Transform(new Vector4(upVector.X, upVector.Y, upVector.Z, 0),
-                        Matrix.CreateFromAxisAngle(new Vector3(right.X, right.Y, right.Z), cameraPositionAngleAroundRightVector));
-                upVector.X = temp.X;
-                upVector.Y = temp.Y;
-                upVector.Z = temp.Z;
-                return;
+                cameraPosition = Vector3.Transform(cameraPosition - cameraLooksAt,
+                        Matrix.CreateFromAxisAngle(rightVector, cameraPositionAngleAroundRightVector)) + cameraLooksAt;
+
+                upVector = Vector3.Transform(upVector,
+                        Matrix.CreateFromAxisAngle(rightVector, cameraPositionAngleAroundRightVector));
             }
             if (turnUpVectorItself)
             {
-                Vector4 temp = Vector4.Transform(new Vector4(upVector.X, upVector.Y, upVector.Z, 0),
-                        Matrix.CreateFromAxisAngle(cameraPosition - cameraLooksAt, upVectorTurn));
-                upVector.X = temp.X;
-                upVector.Y = temp.Y;
-                upVector.Z = temp.Z;
+                Vector3 normalUnCamera = cameraPosition - cameraLooksAt;
+                normalUnCamera.Normalize();
+                upVector = Vector3.Transform(upVector,
+                        Matrix.CreateFromAxisAngle(normalUnCamera, upVectorTurn));
                 return;
             }
             if (keyboard.IsKeyUp(Keys.Tab))
@@ -424,7 +404,7 @@ namespace EvoDevo4
 //                    device.Clear(Color.White);
                 if (simulation.paused) {
                     cameraPosition = Vector3.Transform(cameraPosition - cameraLooksAt,
-                            Matrix.CreateFromAxisAngle(Vector3.Down, 0.01f)) + cameraLooksAt;
+                            Matrix.CreateFromAxisAngle(upVector, -0.01f)) + cameraLooksAt;
                 }
                     PlaceCamera();
                     //device.BeginScene();
@@ -525,6 +505,7 @@ namespace EvoDevo4
         {
             Vector diff = a.position - b.position;
             Vector3 dir = cameraPosition - cameraLooksAt;
+            dir.Normalize();
             double cos = diff.x * dir.X + diff.y * dir.Y + diff.z * dir.Z;
             // I know that above formulae lacks lower denominator but it's always > 0 so I don't give a damn
 
