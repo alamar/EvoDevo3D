@@ -34,10 +34,6 @@ namespace EvoDevo4
         private Vector startDragPosition = new Vector();
         private bool isDragging= false;
         private Vector visualShift = new Vector();
-        private VertexPositionColor[] vertices;
-        private short[] indices;
-        private IndexBuffer ib;
-        private VertexBuffer vb;
         private float turnAxis1=0;
         private Vector3 cameraPosition = new Vector3(0, 0, 200);
         private Vector3 cameraLooksAt = new Vector3(0, 0, 0);
@@ -77,17 +73,7 @@ namespace EvoDevo4
             deviceBlock = false;
         }
 
-        /*void timer_Tick(object sender, EventArgs e)
-        {
-            Thread drawthread = new Thread(Draw);
-            if (!nowPainting)
-            {
-                nowPainting = true;
-                drawthread.Start();
-            }
-        }*/
-
-        protected void HandleKeyboard(KeyboardState keyboard)
+        private void HandleKeyboard(KeyboardState keyboard)
         {
             if (keyboard.GetPressedKeys().Length == 0)
             {
@@ -269,100 +255,23 @@ namespace EvoDevo4
             System.Drawing.Font font = new System.Drawing.Font(FontFamily.GenericMonospace,8);
             TextRenderer = new Microsoft.DirectX.Direct3D.Font(device, font);
         }*/
-
-        /*protected override void OnMouseClick(MouseEventArgs e)
+    /*
+        private void HandleMouse(MouseState mouse)
         {
-            simulation.ReTarget(mouseRay, mousePos);
-            base.OnMouseClick(e);
-        }*/
-        /*
-        protected override void OnMouseMove(MouseEventArgs e)
-        {
-            Vector3 near = new Vector3(e.X, e.Y, 0.3f);
-            Vector3 far = new Vector3(e.X, e.Y, 1f);
-            Viewport vp = new Viewport();
-            vp.MaxDepth = 1;
-            vp.MinDepth = 0;
-            vp.X = 0;
-            vp.Y = 0;
-            vp.Height = this.ClientSize.Height;
-            vp.Width = this.ClientSize.Width;
-
             Matrix transformation = Matrix.CreateTranslation((float)visualShift.x, (float)visualShift.y, 0);
             
-            vp.Unproject(near, cameraProjection, cameraView, transformation);
-            vp.Unproject(far, cameraProjection, cameraView, transformation);
+            Vector3 near = graphics.GraphicsDevice.Viewport.Unproject(new Vector3(mouse.X, mouse.Y, 0.3f),
+                    cameraProjection, cameraView, transformation);
+            Vector3 far = graphics.GraphicsDevice.Viewport.Unproject(new Vector3(mouse.X, mouse.Y, 1f),
+                    cameraProjection, cameraView, transformation);
             mouseRay = new Vector(far.X - near.X, far.Y - near.Y, far.Z - near.Z);
             mousePos = new Vector(near.X, near.Y, near.Z);
 
-
-            if (simulation.Cells.Count < 500)
+            if (simulation.Cells.Count < 500 || mouse.LeftButton == ButtonState.Pressed)
             {
                 simulation.ReTarget(mouseRay, mousePos);
             }
-            
-            base.OnMouseMove(e);
         }*/
-
-        private void ResetColorMap()
-        {
-            if (simulation.ConcentrationsChanged)
-            {
-                for (int x = 0; x < WIDTH; x++)
-                {
-
-                    for (int y = 0; y < HEIGHT; y++)
-                    {
-                        vertices[x + y * WIDTH].Color = simulation.GetColor(new Vector(x - WIDTH / 2, y - HEIGHT / 2, 0));
-                    }
-                }
-                vb.SetData(vertices);
-                simulation.ConcentrationsChanged = false;
-            }
-        }
- 
-		private void VertexDeclaration()
-        {
-            //vb = new VertexBuffer(typeof(VertexPositionColor), WIDTH * HEIGHT, device, Usage.Dynamic | Usage.WriteOnly, CustomVertex.PositionColored.Format, Pool.Default);
-            vb = new VertexBuffer(graphics.GraphicsDevice, typeof(VertexPositionColor), WIDTH * HEIGHT, BufferUsage.WriteOnly);
-            vertices = new VertexPositionColor[WIDTH * HEIGHT];
-            for (int x = 0; x < WIDTH; x++)
-            {
-
-                for (int y = 0; y < HEIGHT; y++)
-                {
-                    vertices[x + y * WIDTH].Position = new Vector3(x-WIDTH/2, (y-HEIGHT/2), -1);
-                    //vertices[x + y * WIDTH].Color = simulation.GetColor(new Vector(x-WIDTH/2,y-HEIGHT/2)).ToArgb();
-                    vertices[x + y * WIDTH].Color = Color.White;
-                    //vertices[x + y * WIDTH].Normal = new Vector3(0, 0, 1);
-                }
-            }
-            vb.SetData(vertices);
-        }
-
-        private void IndicesDeclaration()
-        {
-            ib = new IndexBuffer(graphics.GraphicsDevice, typeof(short), (WIDTH - 1) * (HEIGHT - 1) * 6, BufferUsage.WriteOnly);
-            indices = new short[(WIDTH - 1) * (HEIGHT - 1) * 6];
-
-            for (int x = 0; x < WIDTH - 1; x++)
-            {
-
-                for (int y = 0; y < HEIGHT - 1; y++)
-                {
-                    indices[(x + y * (WIDTH - 1)) * 6] = (short)(x + y * WIDTH);
-                    indices[(x + y * (WIDTH - 1)) * 6 + 1] = (short)((x + 1) + y * WIDTH);
-                    indices[(x + y * (WIDTH - 1)) * 6 + 2] = (short)((x + 1) + (y + 1) * WIDTH);
-
-                    indices[(x + y * (WIDTH - 1)) * 6 + 3] = (short)(x + (y + 1) * WIDTH);
-                    indices[(x + y * (WIDTH - 1)) * 6 + 4] = (short)(x + y * WIDTH);
-                    indices[(x + y * (WIDTH - 1)) * 6 + 5] = (short)((x + 1) + (y + 1) * WIDTH);
-                }
-            }
-            ib.SetData(indices);
-        }
-
-        
 
 /*        public int frames;
         public DateTime initTime = DateTime.Now;
@@ -484,20 +393,17 @@ namespace EvoDevo4
             cameraView = Matrix.CreateLookAt(new Vector3(0f, 0f, 190f), new Vector3(0, 0, 0), new Vector3(0, 1, 0));
         }*/
 
-        private bool nowPainting = false;
-        /*protected override void OnPaint(System.Windows.Forms.PaintEventArgs e)
-        {
-            Thread drawthread = new Thread(Draw);
-            if (!nowPainting)
-            {
-                nowPainting = true;
-                drawthread.Start();
-            }
-            base.OnPaint(e);
-        }*/
         protected override void Update(GameTime gameTime) {
             base.Update(gameTime);
             HandleKeyboard(Keyboard.GetState());
+            //HandleMouse(Mouse.GetState());
+        }
+
+        protected override void OnExiting(Object sender, EventArgs args)
+        {
+            base.OnExiting(sender, args);
+            simulation.paused = true;
+            Exit();
         }
  
         protected override void Draw(GameTime gameTime)
@@ -567,9 +473,6 @@ namespace EvoDevo4
                 deviceBlock = false;
                 Console.WriteLine("OOPS. Rendering exception occured and was brutally ignored" + e.Message);
             }
-
-//            base.Draw(gameTime);
-            nowPainting = false;
         }
 
         private void PlaceCamera()
