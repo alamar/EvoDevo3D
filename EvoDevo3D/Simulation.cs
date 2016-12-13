@@ -407,7 +407,7 @@ namespace EvoDevo4
                     retval.Add(cellmate);
                 }
             }
-            return retval;
+            return retval.OrderBy(other => (cell.position - other.position).Length).ToList();
         }
 
         public void GeneticTick()

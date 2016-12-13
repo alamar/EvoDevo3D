@@ -263,7 +263,8 @@ namespace EvoDevo4
         public static bool Recompile()
         {
             CodeDomProvider provider = new CSharpCodeProvider();
-            CompiledGeneticStrategy = CompileScript(geneCodeTemplatePiece1 + geneCodeTemplatePiece2 + geneCodeTemplatePiece3 + GeneticCode + geneCodeTemplateEnd, "", provider);
+            string script = geneCodeTemplatePiece1 + geneCodeTemplatePiece2 + geneCodeTemplatePiece3 + GeneticCode + geneCodeTemplateEnd;
+            CompiledGeneticStrategy = CompileScript(script, "", provider);
             if (CompiledGeneticStrategy.Errors.HasErrors)
             {
                 foreach (CompilerError err in CompiledGeneticStrategy.Errors)
@@ -457,6 +458,21 @@ namespace EvoDevo4
         {
             Cell newCell = new Cell(simulation, this.position+(Vector.CreateRandom() * this.radius / 5),
                     this.radius, this.resilience);
+            numDivisions++;
+            newCell.InheritFrom(this);
+            simulation.RegisterNewCell(newCell);
+            return newCell;
+        }
+
+
+        /// <summary>
+        /// Creates an offspring cell at specified location.
+        /// </summary>
+        /// <returns></returns>
+        public Cell SpawnAt(double x, double y, double z)
+        {
+            Cell newCell = new Cell(simulation, new Vector(x, y, z),
+                this.radius, this.resilience);
             numDivisions++;
             newCell.InheritFrom(this);
             simulation.RegisterNewCell(newCell);
