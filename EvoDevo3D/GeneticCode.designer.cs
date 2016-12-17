@@ -1,4 +1,5 @@
-﻿
+﻿using System.Drawing;
+
 namespace EvoDevo4
 {
     partial class GeneticCode 
@@ -89,6 +90,7 @@ namespace EvoDevo4
             this.rtCode.Location = new System.Drawing.Point(165, 60);
             this.rtCode.Name = "rtCode";
             this.rtCode.Size = new System.Drawing.Size(580, 460);
+            this.rtCode.Font = new Font(FontFamily.GenericMonospace, rtCode.Font.Size);
             //this.rtCode.Styles.BraceBad.FontName = "Verdana";
             //this.rtCode.Styles.BraceLight.FontName = "Verdana";
             //this.rtCode.Styles.ControlChar.FontName = "Verdana";

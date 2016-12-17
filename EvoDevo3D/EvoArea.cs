@@ -292,8 +292,8 @@ namespace EvoDevo4
             concentrationSpheres[2] = new SpherePrimitive(graphics.GraphicsDevice, 15, 16);
             cellMaterial = new Color[10];
             cellMaterial[0] = Color.LightGray;
-            cellMaterial[1] = Color.Chocolate;
-            cellMaterial[2] = Color.Chartreuse;
+            cellMaterial[1] = Color.Chartreuse;
+            cellMaterial[2] = Color.Chocolate;
             cellMaterial[3] = Color.Fuchsia;
             cellMaterial[4] = Color.CornflowerBlue;
             cellMaterial[5] = Color.ForestGreen;

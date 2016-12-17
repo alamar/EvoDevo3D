@@ -379,7 +379,7 @@ namespace EvoDevo4
             if (runs())
             {
                 lblProcess.Text = "Process: " + runningSimulation.state;
-                lblCells.Text = "Cells: " + runningSimulation.Cells.Count;
+                lblCells.Text = "Cells: " + runningSimulation.Cells.Count + " Age: " + runningSimulation.Cells[0].age;
                 tsbPlay.Enabled = runningSimulation.paused;
                 tsbPause.Enabled = !runningSimulation.paused;
             }

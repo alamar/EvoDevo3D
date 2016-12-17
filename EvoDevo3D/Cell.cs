@@ -76,6 +76,7 @@ namespace EvoDevo4
             }
         }
         public List<Cell> connectedCells = new List<Cell>();
+        public List<Cell> linkedCells = new List<Cell>();
         public List<Cell> offspring = new List<Cell>();
         public Cell parent;
         public Cell lastOffspring;
@@ -715,15 +716,15 @@ namespace EvoDevo4
             }
         }
 
-        public void ConnectTo(Cell cell)
+        public void ConnectTo(Cell another)
         {
             
-            if (cell == null) return;
-            if (!connectedCells.Contains(cell))
+            if (another == null) return;
+            if (!connectedCells.Contains(another))
             {
-                connectedCells.Add(cell);
+                connectedCells.Add(another);
             }
-            foreach (Cell swarmer in cell.connectedCells.GetRange(0, cell.connectedCells.Count))
+            foreach (Cell swarmer in another.connectedCells.GetRange(0, another.connectedCells.Count))
             {
                 if (!connectedCells.Contains(swarmer))
                     connectedCells.Add(swarmer);
@@ -732,18 +733,41 @@ namespace EvoDevo4
                     swarmer.connectedCells.Add(this);
             }
 
-            if (!cell.connectedCells.Contains(this))
-                cell.connectedCells.Add(this);
+            if (!another.connectedCells.Contains(this))
+                another.connectedCells.Add(this);
             
 
         }
 
-        public void DisconnectFrom(Cell cell)
+        public void DisconnectFrom(Cell another)
         {
-            if (connectedCells.Contains(cell))
+            if (connectedCells.Contains(another))
             {
-                cell.connectedCells.Remove(this);
-                connectedCells.Remove(cell);
+                another.connectedCells.Remove(this);
+                connectedCells.Remove(another);
+            }
+        }
+
+        public void LinkTo(Cell another)
+        {
+            if (another == null || another == this) return;
+            if (!linkedCells.Contains(another))
+            {
+                linkedCells.Add(another);
+            }
+
+            if (!another.linkedCells.Contains(this))
+            {
+                another.linkedCells.Add(this);
+            }
+        }
+
+        public void UnlinkFrom(Cell another)
+        {
+            if (linkedCells.Contains(another))
+            {
+                another.linkedCells.Remove(this);
+                linkedCells.Remove(another);
             }
         }
 
@@ -751,9 +775,15 @@ namespace EvoDevo4
         {
             lock (simulation.Cells)
             {
-                foreach (Cell cell in connectedCells.GetRange(0,connectedCells.Count))
+                foreach (Cell cell in connectedCells)
                 {
                     DisconnectFrom(cell);
+                }
+
+                // XXX BreakApart()?
+                foreach (Cell cell in linkedCells)
+                {
+                    UnlinkFrom(cell);
                 }
             }
         }

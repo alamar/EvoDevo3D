@@ -247,7 +247,7 @@ namespace EvoDevo4
                 }
                 
             }
-            foreach (Cell cell in TempActiveCells)
+            foreach (Cell cell in TempActiveCells.OrderBy(a => Cell.random.Next()))
             {
 
                 double stepDist = ((cell.desiredDistance < cell.movingSpeed) ? cell.desiredDistance : cell.movingSpeed);
@@ -295,7 +295,24 @@ namespace EvoDevo4
 
                         }
                     }
-                }                
+                }
+
+                foreach (Cell linked in cell.linkedCells)
+                {
+                    double criticalDistance = (linked.radius + cell.radius) * 1.5;
+                    if (Vector.SqDistance(linked.position, cell.position) > criticalDistance * criticalDistance)
+                    {
+                        double movingLength = 0.0;
+                        double distLimit = (cell.radius + linked.radius);
+                        double dist = (cell.position - linked.position).Length;
+                        if (dist > distLimit && dist > Simulation.ALMOST_ZERO)
+                        {
+                            movingLength = 0.1 * cell.radius * (1 - distLimit / dist);
+                            Vector temp = (linked.position - cell.position) * (movingLength / dist);
+                            cell.passiveMovingDirection += temp;
+                        }
+                    }
+                }
             }
             
             foreach (Cell cell in TempCells)
