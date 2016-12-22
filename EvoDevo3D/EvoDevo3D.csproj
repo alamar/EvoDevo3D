@@ -128,6 +128,7 @@
     <Compile Include="Primitives\VertexPositionNormal.cs" />
     <Compile Include="Support\ToolStripCheckBox.cs" />
     <Compile Include="Simulation.cs" />
+    <Compile Include="Support\Extend.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="GeneticCode.resx">

@@ -541,7 +541,7 @@ namespace EvoDevo4
         private void DrawCells()
         {
             //device.SetTexture(0, null);
-            foreach (Cell currenttarget in simulation.Cells.GetRange(0,simulation.Cells.Count))
+            foreach (Cell currenttarget in simulation.Cells)
             {
                 /*switch (currenttarget.cellType)
                 {

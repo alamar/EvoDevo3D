@@ -36,7 +36,7 @@ namespace EvoDevo4
         public double GetConcentration(Vector location, int secretID)
         {
             double retval=0;
-            foreach (Source sc in Sources.GetRange(0, Sources.Count))
+            foreach (Source sc in Sources)
             {
                 if (sc.secretID == secretID)
                 {
@@ -56,7 +56,7 @@ namespace EvoDevo4
         {
             double curConc = 0;
             Vector retval = new Vector();
-            foreach (Source sc in Sources.GetRange(0, Sources.Count))
+            foreach (Source sc in Sources)
             {
                 if (sc.secretID == secretID)
                 {
@@ -85,7 +85,7 @@ namespace EvoDevo4
             byte g = 255;
             byte b = 255;
 
-            foreach (Source sc in Sources.GetRange(0, Sources.Count))
+            foreach (Source sc in Sources)
             {
                 if (sc != null) //it can be null if a source is removed while in cycle
                 {
@@ -232,7 +232,7 @@ namespace EvoDevo4
             while (PassiveMovementBlock) Thread.Sleep(100);
             List<Cell> TempCells = new List<Cell>();
             List<Cell> TempActiveCells = new List<Cell>();
-            foreach (Cell cell in Cells.GetRange(0, Cells.Count))
+            foreach (Cell cell in Cells)
             {
                 if (!cell.holdingPosition)
                 {
@@ -360,7 +360,7 @@ namespace EvoDevo4
             }
             if (cell.connectedCells.Count > 0)
             {
-                foreach (Cell swarmer in cell.connectedCells.GetRange(0, cell.connectedCells.Count))
+                foreach (Cell swarmer in cell.connectedCells)
                 {
                     swarmer.position += where;
                     if (!ConcentrationsChanged)

@@ -724,7 +724,7 @@ namespace EvoDevo4
             {
                 connectedCells.Add(another);
             }
-            foreach (Cell swarmer in another.connectedCells.GetRange(0, another.connectedCells.Count))
+            foreach (Cell swarmer in another.connectedCells.Copy())
             {
                 if (!connectedCells.Contains(swarmer))
                     connectedCells.Add(swarmer);
@@ -775,13 +775,13 @@ namespace EvoDevo4
         {
             lock (simulation.Cells)
             {
-                foreach (Cell cell in connectedCells)
+                foreach (Cell cell in connectedCells.Copy())
                 {
                     DisconnectFrom(cell);
                 }
 
                 // XXX BreakApart()?
-                foreach (Cell cell in linkedCells)
+                foreach (Cell cell in linkedCells.Copy())
                 {
                     UnlinkFrom(cell);
                 }
