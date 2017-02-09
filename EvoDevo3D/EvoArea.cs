@@ -11,7 +11,17 @@ namespace EvoDevo4
 {
     public class EvoArea : Game 
     {
+        // XXX remove?
         private Simulation simulation;
+        private Session session;
+        public Session Session
+        {
+            set
+            {
+                session = value;
+                simulation = session.Simulation;
+            }
+        }
         private Matrix cameraProjection = Matrix.Identity;
         private SpriteFont textRenderer;
         private Matrix cameraView = Matrix.Identity;
@@ -47,24 +57,12 @@ namespace EvoDevo4
         /// <summary>
         /// Creates new Render window instance;
         /// </summary>
-        public EvoArea(Simulation simulation) 
+        public EvoArea()
         {
-            this.simulation = simulation;
             graphics = new GraphicsDeviceManager (this);
 
             graphics.PreferMultiSampling = true;
-            graphics.IsFullScreen = false;   
-           
-            //if (!InitializeDevice()) throw new Exception("DirectX initialization failed");
-            /*SetUpCamera();
-            VertexDeclaration();
-            IndicesDeclaration();
-            InitializeTextOutput();
-            timer.Tick += new EventHandler(timer_Tick);
-            timer.Interval = 50;
-            timer.Enabled = true;
-            */
-            //gc.BringToFront();
+            graphics.IsFullScreen = false;
         }
 
         protected override void LoadContent()
@@ -494,12 +492,6 @@ namespace EvoDevo4
             }
 
             graphics.GraphicsDevice.BlendState = BlendState.Opaque;
-            /*device.Transform.World = Matrix.Identity;
-            device.RenderState.AlphaBlendEnable = true;
-            device.RenderState.SourceBlend = Blend.SourceAlpha;
-            device.RenderState.DestinationBlend = Blend.InvSourceAlpha;
-            device.VertexFormat = VertexPositionColor.Format;
-            device.RenderState.AlphaBlendEnable = false;*/
         }
         private int WhoSCloser(Source a, Source b)
         {
@@ -541,46 +533,17 @@ namespace EvoDevo4
         private void DrawCells()
         {
             //device.SetTexture(0, null);
+            bool[] visibility = session.Controls.visibility();
             foreach (Cell currenttarget in simulation.Cells)
             {
-                /*switch (currenttarget.cellType)
+                if (currenttarget.cellType >= 0 && currenttarget.cellType < visibility.Length && !visibility[currenttarget.cellType])
                 {
-                    case 0:
-                        if (!chb0Visible.Checked) continue;
-                        break;
-                    case 1:
-                        if (!chb1Visible.Checked) continue;
-                        break;
-                    case 2:
-                        if (!chb2Visible.Checked) continue;
-                        break;
-                    case 3:
-                        if (!chb3Visible.Checked) continue;
-                        break;
-                    case 4:
-                        if (!chb4Visible.Checked) continue;
-                        break;
-                    case 5:
-                        if (!chb5Visible.Checked) continue;
-                        break;
-                    case 6:
-                        if (!chb6Visible.Checked) continue;
-                        break;
-                    case 7:
-                        if (!chb7Visible.Checked) continue;
-                        break;
-                    case 8:
-                        if (!chb8Visible.Checked) continue;
-                        break;
-                    case 9:
-                        if (!chb9Visible.Checked) continue;
-                        break;
+                   continue;
+                }
 
-                }*/
-                /*device.Transform.World = */
-                Matrix location = /*Matrix.CreateScale((float)currenttarget.radius,
+                Matrix location = Matrix.CreateScale((float)currenttarget.radius,
                             (float)currenttarget.radius, (float)currenttarget.radius)
-                        */ Matrix.CreateTranslation((float)currenttarget.position.x,
+                        * Matrix.CreateTranslation((float)currenttarget.position.x,
                             (float)currenttarget.position.y, (float)currenttarget.position.z); 
                 Color currentMaterial;
                 if (currenttarget.color > 0 && currenttarget.color < 10)

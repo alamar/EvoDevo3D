@@ -34,10 +34,7 @@ namespace EvoDevo4
         private ToolStripLabel lblCells;
         private ToolStripLabel lblVisible;
 
-        private Simulation runningSimulation;
-        private Thread heartbeatThread;
-        private EvoArea evoArea;
-        private Thread evoAreaThread;
+        private Session runningSession;
 
         private string fileName = "";
 
@@ -118,7 +115,7 @@ namespace EvoDevo4
         }
 
         public bool runs() {
-            return runningSimulation != null;
+            return runningSession != null;
         }
 
         public static CompilerResults CompileScript(string Source, string Reference, CodeDomProvider Provider)
@@ -310,7 +307,7 @@ namespace EvoDevo4
             Cell.GeneticCode = rtCode.Text;
             if (Cell.Recompile())
             {
-                runningSimulation = null;
+                runningSession = null;
             }
         }
 
@@ -319,33 +316,41 @@ namespace EvoDevo4
             if (!runs()) {
                 Simulation simulation = new Simulation();
                 // XXX bad
-                heartbeatThread = new Thread(simulation.ActionsManager);
+                Thread heartbeatThread = new Thread(simulation.ActionsManager);
+                heartbeatThread.IsBackground = true;
                 heartbeatThread.Start();
-                evoArea = new EvoArea(simulation);
-                evoAreaThread = new Thread(evoArea.Run);
+                Thread evoAreaThread = new Thread(() => {
+                    EvoArea evoArea = new EvoArea();
+                    runningSession = new Session(this, simulation, evoArea);
+                    evoArea.Session = runningSession;
+                    runningSession.resume();
+                    evoArea.Run();
+                });
+                evoAreaThread.IsBackground = true;
                 evoAreaThread.Start();
-                this.runningSimulation = simulation;
             }
 
-            this.runningSimulation.paused = false;
             tsbPause.Enabled = true;
             tsbPlay.Enabled = false;
         }
 
         private void tsbPause_Click(object sender, EventArgs e)
         {
-            runningSimulation.paused = !runningSimulation.paused;
-            tsbPause.Enabled = !runningSimulation.paused;
-            tsbPlay.Enabled = runningSimulation.paused;
+            bool running = runningSession.toggle();
+            tsbPause.Enabled = running;
+            tsbPlay.Enabled = !running;
         }
 
         private void tsbStep_Click(object sender, EventArgs e)
         {
-            runningSimulation.AwaitingQueue.Enqueue('s');
-            runningSimulation.paused = false;
-            runningSimulation.newActionAllowed = true;
-            tsbPause.Enabled = false;
-            tsbPlay.Enabled = true;
+            if (runningSession != null)
+            {
+                runningSession.Simulation.AwaitingQueue.Enqueue('s');
+                runningSession.resume();
+                runningSession.Simulation.newActionAllowed = true;
+                tsbPause.Enabled = false;
+                tsbPlay.Enabled = true;
+            }
         }
 
         private void tsbSnapshot_Click(object sender, EventArgs e)
@@ -362,15 +367,27 @@ namespace EvoDevo4
         {
             if (MessageBox.Show("This will reset the world to initial state. Are you sure?", "EvoDevo IV", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation) == DialogResult.Yes)
             {
-                runningSimulation = null;
+                runningSession = null;
             }
+        }
+
+        public bool[] visibility()
+        {
+            bool[] visibility = new bool[chbVisible.Length];
+
+            for (int i = 0; i < chbVisible.Length; i++)
+            {
+                visibility[i] = chbVisible[i].CheckBox.Checked;
+            }
+            return visibility;
         }
 
         private void tmWorldHeartbeat_Tick(object sender, EventArgs e)
         {
             if (runs())
             {
-                runningSimulation.newActionAllowed = true;
+                // XXX WTF
+                runningSession.Simulation.newActionAllowed = true;
             }
         }
 
@@ -378,10 +395,10 @@ namespace EvoDevo4
         {
             if (runs())
             {
-                lblProcess.Text = "Process: " + runningSimulation.state;
-                lblCells.Text = "Cells: " + runningSimulation.Cells.Count + " Age: " + runningSimulation.Cells[0].age;
-                tsbPlay.Enabled = runningSimulation.paused;
-                tsbPause.Enabled = !runningSimulation.paused;
+                lblProcess.Text = "Process: " + runningSession.Simulation.state;
+                lblCells.Text = "Cells: " + runningSession.Simulation.Cells.Count + " Age: " + runningSession.Simulation.Cells[0].age;
+                tsbPlay.Enabled = runningSession.Simulation.paused;
+                tsbPause.Enabled = !runningSession.Simulation.paused;
             }
             else
             {
