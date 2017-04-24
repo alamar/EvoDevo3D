@@ -8,11 +8,11 @@ if (numDivisions<10)
    {
 	if (EnvironmentalAccess>0.2 && sensorReaction[0]==0)
 	    {Spill(0);
-		 color=1; }
+		 cellType=1; }
 	if (sensorReaction[1]==0 && EnvironmentalAccess>0 && sensorReaction[0]>0.148 && sensorReaction[0]<0.149)
 //	if (EnvironmentalAccess>0 && sensorReaction[0]>0.148 && sensorReaction[0]<0.149)
 	    {Spill(1);
-		color=2;}
+		cellType=2;}
    
    }
 

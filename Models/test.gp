@@ -1,4 +1,4 @@
-color=cellType;
+cellType=cellType;
 if (cellType==0)
 {
 	SpawnPolarization().cellType=1;

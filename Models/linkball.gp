@@ -2,7 +2,7 @@ int LINKS = 15;
 
 int WHEN_DONE = 70;
 
-switch (cell.color)
+switch (cell.cellType)
 {
     case 0:
         if (numDivisions<11)
@@ -29,19 +29,19 @@ switch (cell.color)
         } else if (age == 40) {
             if (cell.position.z > 12.0)
             {
-                cell.color = 2;
+                cell.cellType = 2;
                 DeSpill(1);
                 Spill(2);
             }
             else if (cell.position.z > 10.0)
             {
-                cell.color = 3;
+                cell.cellType = 3;
                 DeSpill(1);
                 Spill(3);
             }
             else
             {
-                cell.color = 1;
+                cell.cellType = 1;
             }
         }
         break;
@@ -61,7 +61,7 @@ switch (cell.color)
     case 3:
         MoveGradient(3, true, true, -1.0);
         if (age == WHEN_DONE) {
-            cell.color = 2;
+            cell.cellType = 2;
         }
         break;
 }

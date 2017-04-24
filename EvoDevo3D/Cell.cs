@@ -10,15 +10,16 @@ namespace EvoDevo4
 {
     public abstract class Cell
     {
+        public static int counter = 0;
         public Simulation simulation;
+
         public List<Cell> neighbours = new List<Cell>();
         public List<Cell> surroundingCells = new List<Cell>();
         public int ID=counter++;
-        public static int counter=0;
         public Vector position;
         public Vector passiveMovingDirection;
         public double radius;
-        public int age=0;
+        public int age = 0;
         public int numDivisions = 0;
         public double resilience; //упругость если что :)
         public bool IsMoving;
@@ -114,7 +115,6 @@ namespace EvoDevo4
                                 }";
         public static Dictionary<String, String> MemberMethods = new Dictionary<string, string>();
         public static Dictionary<String, String> MemberProperties = new Dictionary<string, string>();
-        public int color = 0; 
 
         public override string ToString()
         {
@@ -302,7 +302,6 @@ namespace EvoDevo4
         /// <param name="ancestor">Parent cell to inherit from</param>
         private void InheritFrom(Cell ancestor)
         {
-            this.color = ancestor.color;
             this.polarization = new Vector(ancestor.polarization.x, ancestor.polarization.y, ancestor.polarization.z);
             this.radius = ancestor.radius;
             this.resilience = ancestor.resilience;

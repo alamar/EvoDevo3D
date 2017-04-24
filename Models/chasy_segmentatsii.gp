@@ -1,5 +1,5 @@
 resilience=0.6;
-color=cellType;
+cellType=cellType;
 if (cellType==0)
 {
 	if (numDivisions<9)

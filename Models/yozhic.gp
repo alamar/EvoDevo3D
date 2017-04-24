@@ -1,6 +1,6 @@
 if (cellType==0)
 {
-	color=1;
+	cellType=1;
 	if (sensorReaction[0]<0.001)
 	{
 		Spill(0);
@@ -12,7 +12,7 @@ if (cellType==0)
 }
 if (cellType==1)
 {
-	color=2;
+	cellType=2;
 	resilience=0.42;
 	if (EnvironmentalAccess>0.5 && sensorReaction[0]>0.03)
 	{
@@ -30,7 +30,7 @@ if (cellType==1)
 }
 if (cellType==2)
 {
-	color=3;
+	cellType=3;
 	resilience=0.6;
 	if (EnvironmentalAccess>0)
 	{

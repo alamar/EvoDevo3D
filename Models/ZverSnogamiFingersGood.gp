@@ -1,7 +1,7 @@
 double a=1; 
 double b=1; 
 double c=1;
-if (!secrettingNow[3] && !secrettingNow[4] && cellType<11) color=cellType;
+if (!secrettingNow[3] && !secrettingNow[4] && cellType<11) cellType=cellType;
 if (cellType==0)
 {
 if (sensorReaction[2]==0)
@@ -41,12 +41,12 @@ if (sensorReaction[2]>0)
 a=sensorReaction[0]/sensorReaction[1];
 if (a<3.05 && a>2.95 && sensorReaction[3]<0.00001 & EnvironmentalAccess>0.05)
 {
-	Spill(3); color=10; //Dorsal organizer	
+	Spill(3); cellType=10; //Dorsal organizer	
 }
 b=sensorReaction[3];
 if (a<3.2 && a>(2.4 - rnd*0.2) && EnvironmentalAccess>0.03 && b>0 && (b<0.085 || (b<0.1 && rnd<0.05)) && sensorReaction[4]<0.00001)
 {
-	Spill(4); color=11;  // Ventral organizer	
+	Spill(4); cellType=11;  // Ventral organizer	
 }	
 c=sensorReaction[3]-sensorReaction[4];
 if (!secrettingNow[0] && !secrettingNow[1] && b>0 && sensorReaction[4]>0)
@@ -175,7 +175,7 @@ if (cellType==10) // Fingers
 }
 if (cellType==11)
 {
-	color=1;
+	cellType=1;
 }
 
 

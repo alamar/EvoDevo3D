@@ -336,9 +336,9 @@ namespace EvoDevo4
                         * Matrix.CreateTranslation((float)currenttarget.position.x,
                             (float)currenttarget.position.y, (float)currenttarget.position.z); 
                 Color currentMaterial;
-                if (currenttarget.color > 0 && currenttarget.color < 10)
+                if (currenttarget.cellType > 0 && currenttarget.cellType < 10)
                 {
-                    currentMaterial = cellMaterial[currenttarget.color];
+                    currentMaterial = cellMaterial[currenttarget.cellType];
                 }
                 else
                 {
