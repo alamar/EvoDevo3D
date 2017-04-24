@@ -305,15 +305,13 @@ namespace EvoDevo4
         public void btnCompile_Click(object sender, EventArgs e)
         {
             Cell.GeneticCode = rtCode.Text;
-            if (Cell.Recompile())
-            {
-                runningSession = null;
-            }
+            Cell.Recompile();
         }
 
         private void tsbPlay_Click(object sender, EventArgs e)
         {
             if (!runs()) {
+                Cell.Recompile();
                 Simulation simulation = new Simulation();
                 // XXX bad
                 Thread heartbeatThread = new Thread(simulation.ActionsManager);
