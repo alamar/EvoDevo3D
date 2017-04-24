@@ -164,10 +164,10 @@ namespace EvoDevo4
             */
         }
 
-        public Simulation()
+        public Simulation(Type cell)
         {
             ConcentrationsChanged = true;
-            Cell newCell = Cell.GenerateRandomCell(this);
+            Cell newCell = Cell.GenerateRandomCell(cell, this);
             newCell.radius = 1;
             newCell.position.Trivialize();
             Cells.Add(newCell);
@@ -430,7 +430,6 @@ namespace EvoDevo4
         public void GeneticTick()
         {
             PassiveMovementBlock = true;
-            List<Cell> TempCells = new List<Cell>();
             foreach (Cell cell in Cells.GetRange(0, Cells.Count))
             {
                 cell.LiveOn();                

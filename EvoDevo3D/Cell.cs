@@ -8,7 +8,7 @@ using Microsoft.CSharp;
 
 namespace EvoDevo4
 {
-    public class Cell
+    public abstract class Cell
     {
         public Simulation simulation;
         public List<Cell> neighbours = new List<Cell>();
@@ -81,29 +81,32 @@ namespace EvoDevo4
         public Cell parent;
         public Cell lastOffspring;
 
+        public static Random random = new Random();
+        public void FixOrganizm() {simulation.FixOrganizm();}
+        public static double rnd
+        {
+            get
+            {
+                return random.NextDouble();
+            }
+        }
+
         public static string GeneticCode = "";
         public static CompilerResults CompiledGeneticStrategy;
         public const String geneCodeTemplatePiece1 = @"
                                 using System;
                                 using System.Collections.Generic;
                                 using EvoDevo4;
-                                static class CellStrategy
+                                class CellStrategy : Cell
                                 {
-                                public static Random random = new Random();
-                                public static Cell cell;
-                                public static void FixOrganizm() {simulation.FixOrganizm();}
-                                public static double rnd
-                                {
-                                    get
+                                    public CellStrategy(Simulation simulation, Vector position, double radius, double resilience)
+                                        : base(simulation, position, radius, resilience)
                                     {
-                                        return random.NextDouble();
-                                    }
-                                }";
+                                    }";
         public static string geneCodeTemplatePiece2="";
         public const String geneCodeTemplatePiece3 = @" 
-                                    public static void main(Cell incell)
+                                    public override void CellLiveOn()
                                     {
-                                        cell = incell;
                                         ";
         public static String geneCodeTemplateEnd = @"
                                         
@@ -112,6 +115,7 @@ namespace EvoDevo4
         public static Dictionary<String, String> MemberMethods = new Dictionary<string, string>();
         public static Dictionary<String, String> MemberProperties = new Dictionary<string, string>();
         public int color = 0; 
+
         public override string ToString()
         {
             string format = @"Cell: position              ({0:f}, {1:f}, {10:f})
@@ -166,34 +170,15 @@ namespace EvoDevo4
                 else
                 {
                     string invocation="";
-                    string f_declaration = "";
-                    string f_body = "";
                     if (methods[i].MemberType == MemberTypes.Property)
                     {
                         invocation = methods[i].Name;
-                        PropertyInfo mi = (PropertyInfo)methods[i];
-                        f_declaration = "public static " + mi.PropertyType.Name + " " + mi.Name + "{ " + ((mi.CanRead)?"get { return cell." + mi.Name + " ;} ":"")+ ((mi.CanWrite)?" set { cell." + mi.Name + " =value;} ":"")+"}";
-
-                        if (((PropertyInfo)methods[i]).PropertyType.IsArray)
-                        {
-                            invocation += "[]";
-                        }
-                        if (invocation == "") continue;
-                        geneCodeTemplatePiece2 += f_declaration + "\n";
                         MemberProperties.Add(invocation, invocation);
                     }
                     
                     if (methods[i].MemberType == MemberTypes.Field)
                     {
                         invocation = methods[i].Name;
-                        FieldInfo mi = (FieldInfo)methods[i];
-                        f_declaration = "public static " + ((mi.FieldType.Name.Contains("List"))?"List<Cell>":mi.FieldType.Name) + " " + mi.Name + "{ get { return cell." + mi.Name + " ;} set { cell."+mi.Name+" =value;} }";
-                        if ((mi).FieldType.IsArray)
-                        {
-                            invocation += "[]";
-                        }
-                        if (invocation == "") continue;
-                        geneCodeTemplatePiece2 += f_declaration + "\n";
                         MemberProperties.Add(invocation, invocation);
                     }
                     if (methods[i].MemberType == MemberTypes.Method)
@@ -203,25 +188,13 @@ namespace EvoDevo4
                             continue;
                         }
                         MethodInfo mi = (MethodInfo)methods[i];
-                        f_declaration = "public static " + ((mi.ReturnType.Name.Contains("Void")) ? "void" : mi.ReturnType.Name) + " " + mi.Name + "(";
-                        f_body = "{ " + ((mi.ReturnType.Name.Contains("Void")) ? "" : "return ") + "cell." + mi.Name + "(";
-                            
                         invocation = mi.Name + "(";
                         ParameterInfo[] parametres = mi.GetParameters();
                         for (int ii = 0; ii < parametres.Length; ii++)
                         {
                             
                             invocation += ((ii == 0) ? "" : ",");
-                            f_declaration += ((ii == 0) ? "" : ",");
-                            f_body += ((ii == 0) ? "" : ",");
-                            invocation += "(" + parametres[ii].ParameterType.Name + ")" + parametres[ii].Name;
-                            f_declaration += parametres[ii].ParameterType.Name + " " + parametres[ii].Name;
-                            f_body += parametres[ii].Name;
                         }
-                        f_body += "); }";
-                        f_declaration += ")";
-                        
-                        geneCodeTemplatePiece2 += (f_declaration + f_body + "\n");
                         invocation += ");";
                         if (MemberMethods.ContainsKey(mi.Name))
                         {
@@ -235,33 +208,13 @@ namespace EvoDevo4
                             MemberMethods.Add(mi.Name, invocation);
                         }
                     }
-                    
                 }
             }
         }
-        
-        public bool CellLiveOn()
-        {
-            
-            if (CompiledGeneticStrategy == null)
-            {
-                Recompile();
-            }
-            if (CompiledGeneticStrategy.Errors.HasErrors)
-            {
-                return (false);
-            }
 
-            Type type = CompiledGeneticStrategy.CompiledAssembly.GetType("CellStrategy");
-            MethodInfo method = type.GetMethod("main");
-            object[] passParams = new object[1];
-            passParams[0] = this;
-            method.Invoke(null, passParams);
+        public abstract void CellLiveOn();
 
-            return (true);
-        }
-
-        public static bool Recompile()
+        public static Type Recompile()
         {
             CodeDomProvider provider = new CSharpCodeProvider();
             string script = geneCodeTemplatePiece1 + geneCodeTemplatePiece2 + geneCodeTemplatePiece3 + GeneticCode + geneCodeTemplateEnd;
@@ -270,9 +223,9 @@ namespace EvoDevo4
             {
                 foreach (CompilerError err in CompiledGeneticStrategy.Errors)
                     System.Windows.Forms.MessageBox.Show(err.ErrorText);
-                return (false);
+                return null;
             }
-            return (true);
+            return CompiledGeneticStrategy.CompiledAssembly.GetType("CellStrategy");
         }
 
         public static CompilerResults CompileScript(string Source, string Reference, CodeDomProvider Provider)
@@ -367,8 +320,6 @@ namespace EvoDevo4
             ancestor.lastOffspring = this;
         }
 
-        public static Random random = new Random();
-
         public MapPos MyPos
         {
             get
@@ -381,12 +332,12 @@ namespace EvoDevo4
             }
         }
 
-        public static Cell GenerateRandomCell(Simulation simulation)
+        public static Cell GenerateRandomCell(Type cell, Simulation simulation)
         {
             Vector startingVector = new Vector(random.NextDouble() * 20 - 10,
                                         random.NextDouble() * 20 - 10,
                                         random.NextDouble() * 20 - 10);
-            return new Cell(simulation, startingVector,
+            return (Cell) Activator.CreateInstance(cell, simulation, startingVector,
                             (0.875 + random.NextDouble() / 4), 0.8);
         }
 
@@ -398,7 +349,6 @@ namespace EvoDevo4
                 
                 int fi1Sections = 4;
                 int fi2Sections = 4;
-                List<Vector> testDots = new List<Vector>(fi1Sections * fi2Sections);
                 int numFree = 0;
                 bool intersection = false;
                 Vector turnVector;
@@ -457,8 +407,8 @@ namespace EvoDevo4
         /// <returns></returns>
         public Cell SpawnWherever()
         {
-            Cell newCell = new Cell(simulation, this.position+(Vector.CreateRandom() * this.radius / 5),
-                    this.radius, this.resilience);
+            Cell newCell = (Cell) Activator.CreateInstance(GetType(), simulation,
+                    this.position + (Vector.CreateRandom() * this.radius / 5), this.radius, this.resilience);
             numDivisions++;
             newCell.InheritFrom(this);
             simulation.RegisterNewCell(newCell);
@@ -472,172 +422,8 @@ namespace EvoDevo4
         /// <returns></returns>
         public Cell SpawnAt(double x, double y, double z)
         {
-            Cell newCell = new Cell(simulation, new Vector(x, y, z),
-                this.radius, this.resilience);
-            numDivisions++;
-            newCell.InheritFrom(this);
-            simulation.RegisterNewCell(newCell);
-            return newCell;
-        }
-
-        /// <summary>
-        /// Creates an offspring cell. Division plane is orthogonal to gradient vector;
-        /// </summary>
-        /// <param name="proteinID">Protein number</param>
-        /// <param name="alongGradient">True if offspring should go where there is less proteinn;</param>
-        /// <returns></returns>
-        public Cell SpawnGradient(int proteinID, bool alongGradient)
-        {
-            Vector gradient = simulation.GetGradient(this.position, proteinID);
-            if (!alongGradient) gradient.Invert();
-            if (gradient.Length < Simulation.ALMOST_ZERO)
-            {
-                gradient = Vector.CreateRandom();
-            }
-            gradient *= this.radius / 5;
-            Cell newCell = new Cell(simulation, this.position + gradient, this.radius, this.resilience);
-            numDivisions++;
-            newCell.InheritFrom(this);
-            simulation.RegisterNewCell(newCell);
-            return newCell;
-        }
-
-        /// <summary>
-        /// Creates an offspring cell. Division plane is orthogonal to gradient vector with an error of epsilon degrees;
-        /// </summary>
-        /// <param name="proteinID">Protein number</param>
-        /// <param name="alongGradient">True if offspring should go where there is less proteinn;</param>
-        /// <returns></returns>
-        public Cell SpawnGradient(int proteinID, bool alongGradient, int epsilon)
-        {
-            double maxError = Math.PI  * epsilon / 180.0;
-            double error = random.NextDouble() * 2 * maxError - maxError;
-            Vector gradient = simulation.GetGradient(this.position, proteinID);
-            if (!alongGradient) gradient.Invert();
-            gradient.Turn(error);
-            if (gradient.Length < Simulation.ALMOST_ZERO)
-            {
-                gradient = Vector.CreateRandom();
-            }
-            gradient *= this.radius / 5;
-            Cell newCell = new Cell(simulation, this.position + gradient, this.radius, this.resilience);
-            numDivisions++;
-            newCell.InheritFrom(this);
-            simulation.RegisterNewCell(newCell);
-            return newCell;
-        }
-
-        /// <summary>
-        /// Creates an offspring cell. Division plane is orthogonal to gradient vector with an error of epsilon radians;
-        /// </summary>
-        /// <param name="proteinID">Protein number</param>
-        /// <param name="alongGradient">True if offspring should go where there is less proteinn;</param>
-        /// <returns></returns>
-        public Cell SpawnGradient(int proteinID, bool alongGradient, double epsilon)
-        {
-            double maxError = epsilon;
-            double error = random.NextDouble() * 2 * maxError - maxError;
-            Vector gradient = simulation.GetGradient(this.position, proteinID);
-            if (!alongGradient) gradient.Invert();
-            gradient.Turn(error);
-            if (gradient.Length < Simulation.ALMOST_ZERO)
-            {
-                gradient = Vector.CreateRandom();
-            }
-            gradient *= this.radius / 5;
-            Cell newCell = new Cell(simulation, this.position + gradient, this.radius, this.resilience);
-            numDivisions++;
-            newCell.InheritFrom(this);
-            simulation.RegisterNewCell(newCell);
-            return newCell;
-        }
-
-        /// <summary>
-        /// Creates an offspring cell. Division plane is orthogonal to polarization vector with an error of epsilon degrees;
-        /// </summary>
-        /// <param name="alongPolarization">True if offspring should go where polarization points</param>
-        /// <param name="epsilon">Error margin</param>
-        /// <returns></returns>
-        public Cell SpawnPolarization(bool alongPolarization, int epsilon)
-        {
-            double maxError = Math.PI * epsilon / 180.0;
-            double error = random.NextDouble() * 2 * maxError - maxError;
-            Vector gradient = this.polarization;
-            if (!alongPolarization) gradient.Invert();
-            gradient.Turn(error);
-            if (gradient.Length < Simulation.ALMOST_ZERO)
-            {
-                gradient = Vector.CreateRandom();
-            }
-            gradient *= this.radius / 5;
-            Cell newCell = new Cell(simulation, this.position + gradient, this.radius, this.resilience);
-            numDivisions++;
-            newCell.InheritFrom(this);
-            simulation.RegisterNewCell(newCell);
-            return newCell;
-        }
-
-        /// <summary>
-        /// Creates an offspring cell. Division plane is orthogonal to polarization vector with an error of epsilon degrees;
-        /// </summary>
-        /// <param name="alongPolarization">True if offspring should go where polarization points</param>
-        /// <param name="epsilon">Error margin</param>
-        /// <returns></returns>
-        public Cell SpawnPolarization(bool alongPolarization, double epsilon)
-        {
-            double maxError = epsilon;
-            double error = random.NextDouble() * 2 * maxError - maxError;
-            Vector gradient = this.polarization;
-            if (!alongPolarization) gradient.Invert();
-            gradient.Turn(error);
-            if (gradient.Length < Simulation.ALMOST_ZERO)
-            {
-                gradient = Vector.CreateRandom();
-            }
-            gradient *= this.radius / 5;
-            Cell newCell = new Cell(simulation, this.position + gradient, this.radius, this.resilience);
-            numDivisions++;
-            newCell.InheritFrom(this);
-            simulation.RegisterNewCell(newCell);
-            return newCell;
-        }
-
-        /// <summary>
-        /// Creates an offspring cell. Division plane is orthogonal to polarization vector;
-        /// </summary>
-        /// <param name="alongPolarization">True if offspring should go where polarization points</param>
-        /// <returns></returns>
-        public Cell SpawnPolarization(bool alongPolarization)
-        {
-
-            Vector gradient = this.polarization;
-            if (!alongPolarization) gradient.Invert();
-            if (gradient.Length < Simulation.ALMOST_ZERO)
-            {
-                gradient = Vector.CreateRandom();
-            }
-            gradient *= this.radius / 5;
-            Cell newCell = new Cell(simulation, this.position + gradient, this.radius, this.resilience);
-            numDivisions++;
-            newCell.InheritFrom(this);
-            simulation.RegisterNewCell(newCell);
-            return newCell;
-        }
-
-        /// <summary>
-        /// Creates an offspring cell. Division plane is orthogonal to polarization vector;
-        /// </summary>
-        /// <returns>Offspring cell</returns>
-        public Cell SpawnPolarization()
-        {
-
-            Vector gradient = this.polarization;
-            if (gradient.Length < Simulation.ALMOST_ZERO)
-            {
-                gradient = Vector.CreateRandom();
-            }
-            gradient *= this.radius / 5;
-            Cell newCell = new Cell(simulation, this.position + gradient, this.radius, this.resilience);
+            Cell newCell = (Cell) Activator.CreateInstance(GetType(), simulation,
+                    new Vector(x, y, z), this.radius, this.resilience);
             numDivisions++;
             newCell.InheritFrom(this);
             simulation.RegisterNewCell(newCell);
@@ -808,62 +594,6 @@ namespace EvoDevo4
         /// Moves the current cell
         /// </summary>
         /// <param name="Force">True if the cell should be forced in new direction even if it's already moving;</param>
-        /// <returns>Movement direction</returns>
-        public Vector Move(bool Force)
-        {
-            if ((!IsMoving) || (Force))  // If I'm not moving already or am forced to
-            {
-                if (polarization.Length > Simulation.ALMOST_ZERO)
-                {
-                    activeMovingDirection = polarization.Clone();
-                }
-                else
-                {
-                    activeMovingDirection = Vector.CreateRandom();
-                }
-                IsMoving = true;
-                desiredDistance = this.radius;
-                return activeMovingDirection;
-            }
-            return null;
-        }
-
-        /// <summary>
-        /// Moves the current cell
-        /// </summary>
-        /// <param name="Force">True if the cell should be forced in new direction even if it's already moving;</param>
-        /// <param name="Polarized">True if cell shoul move in the polarization direction;</param>
-        /// <returns>Movement direction</returns>
-        public Vector Move(bool Force, bool Polarized)
-        {
-            if ((!IsMoving)||(Force))  // If I'm not moving already or am forced to
-            {
-                if (Polarized)
-                {
-                    if (polarization.Length > Simulation.ALMOST_ZERO)
-                    {
-                        activeMovingDirection = polarization.Clone();
-                    }
-                    else
-                    {
-                        activeMovingDirection = Vector.CreateRandom();
-                    }
-                }
-                else
-                {
-                    activeMovingDirection = Vector.CreateRandom();
-                }
-                IsMoving = true;
-                desiredDistance = this.radius;
-                return activeMovingDirection;
-            }
-            return null;
-        }
-
-        /// <summary>
-        /// Moves the current cell
-        /// </summary>
-        /// <param name="Force">True if the cell should be forced in new direction even if it's already moving;</param>
         /// <param name="Polarized">True if cell shoul move in the polarization direction;</param>
         /// <param name="distance">Desired distance;</param>
         /// <returns>Movement direction</returns>
@@ -888,105 +618,6 @@ namespace EvoDevo4
                 }
                 IsMoving = true;
                 desiredDistance = distance;
-                return activeMovingDirection;
-            }
-            return null;
-        }
-
-        /// <summary>
-        /// Moves the current cell according to protein distribution
-        /// </summary>
-        /// <param name="proteinID">Number of protein to account</param>
-        /// <returns>Movement direction</returns>
-        public Vector MoveGradient(int proteinID)
-        {
-            if ((!IsMoving))  // If I'm not moving already
-            {
-                Vector gradient = simulation.GetGradient(this.position, proteinID);
-
-                if (gradient.Length > Simulation.ALMOST_ZERO)
-                {
-                    activeMovingDirection = gradient;
-                }
-                else
-                {
-                    activeMovingDirection = Vector.CreateRandom();
-                }
-
-
-                IsMoving = true;
-                desiredDistance = this.radius;
-                return activeMovingDirection;
-            }
-            return null;
-        }
-
-        /// <summary>
-        /// Moves the current cell according to protein distribution
-        /// </summary>
-        /// <param name="proteinID">Number of protein to account</param>
-        /// <param name="Force">True if the cell should be forced in new direction even if it's already moving;</param>
-        /// <returns>Movement direction</returns>
-        public Vector MoveGradient(int proteinID, bool Force)
-        {
-            if ((!IsMoving) || (Force))  // If I'm not moving already or am forced to
-            {
-                Vector gradient = simulation.GetGradient(this.position, proteinID);
-
-                if (gradient.Length > Simulation.ALMOST_ZERO)
-                {
-                    activeMovingDirection = gradient;
-                }
-                else
-                {
-                    activeMovingDirection = Vector.CreateRandom();
-                }
-
-
-                IsMoving = true;
-                desiredDistance = this.radius;
-                return activeMovingDirection;
-            }
-            return null;
-        }
-
-        /// <summary>
-        /// Moves the current cell according to protein distribution
-        /// </summary>
-        /// <param name="proteinID">Number of protein to account</param>
-        /// <param name="Force">True if the cell should be forced in new direction even if it's already moving;</param>
-        /// <param name="AlongGradient">True if cell should along the gradient, false if otherwize</param>
-        /// <returns>Movement direction</returns>
-        public Vector MoveGradient(int proteinID, bool Force, bool AlongGradient)
-        {
-            if ((!IsMoving) || (Force))  // If I'm not moving already or am forced to
-            {
-                Vector gradient = simulation.GetGradient(this.position, proteinID);
-                if (AlongGradient)
-                {
-                    if (gradient.Length > Simulation.ALMOST_ZERO)
-                    {
-                        activeMovingDirection = gradient;
-                    }
-                    else
-                    {
-                        activeMovingDirection = Vector.CreateRandom();
-                    }
-                }
-                else
-                {
-                    if (gradient.Length > Simulation.ALMOST_ZERO)
-                    {
-                        activeMovingDirection = gradient;
-                        activeMovingDirection.Invert();
-                    }
-                    else
-                    {
-                        activeMovingDirection = Vector.CreateRandom();
-                    }
-                }
-                IsMoving = true;
-                desiredDistance = this.radius;
                 return activeMovingDirection;
             }
             return null;
@@ -1034,10 +665,6 @@ namespace EvoDevo4
             }
             return null;
         }
-
-
-
-       
 
         #endregion
     }

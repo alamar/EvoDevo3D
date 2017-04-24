@@ -23,28 +23,14 @@ namespace EvoDevo4
             }
         }
         private Matrix cameraProjection = Matrix.Identity;
-        private SpriteFont textRenderer;
         private Matrix cameraView = Matrix.Identity;
-        private Vector mouseRay = new Vector();
-        private Vector mousePos = new Vector();
-        private ArrayList celllist = new ArrayList();
-        private ModelMesh cellmesh;
         private SpherePrimitive sphere;
         private SpherePrimitive[] concentrationSpheres;
         private Color[] cellMaterial;
         int cellSelectionIndex;
-        private Color selectedCellMaterial;
         private bool deviceBlock = true;
-        private int WIDTH = 256;
-        private int HEIGHT = 256;
         public bool screenshotAwaiting = false;
         public bool rendering = false;
-        private int frameNo = 0;
-        private string screenshotFile = @"screenshot.bmp";
-        private Vector startDragPosition = new Vector();
-        private bool isDragging= false;
-        private Vector visualShift = new Vector();
-        private float turnAxis1=0;
         private Vector3 cameraPosition = new Vector3(0, 0, 200);
         private Vector3 cameraLooksAt = new Vector3(0, 0, 0);
         private Vector3 upVector = new Vector3(0, 1, 0);
@@ -206,76 +192,6 @@ namespace EvoDevo4
                 simulation.selectionTarget = null;
             }
         }
-/*
-        private void Screenshot()
-        {
-            RenderTargetBinding renderTarget = device.GetRenderTargets()[0];
-            DateTime n = DateTime.Now;
-         
-
-
-            if (!rendering)
-            {
-                screenshotFile = n.ToString("yyyy-MM-dd_HH-mm-ss") + ".bmp";
-            }
-            else
-            {
-                screenshotFile = "render_at_" + n.ToString("yyyy-MM-dd") + "_frame_" + frameNo++.ToString() + ".bmp";
-            }
-//            SurfaceLoader.Save(screenshotFile, ImageFileFormat.Bmp, renderTarget);
-            screenshotAwaiting = false;
-        }*/
-        /*
-        private void InitializeTextOutput()
-        {
-            //textRenderer = new SD.Font(SD.FontFamily.GenericMonospace, 8);
-        }
-            System.Drawing.Font font = new System.Drawing.Font(FontFamily.GenericMonospace,8);
-            TextRenderer = new Microsoft.DirectX.Direct3D.Font(device, font);
-        }*/
-    /*
-        private void HandleMouse(MouseState mouse)
-        {
-            Matrix transformation = Matrix.CreateTranslation((float)visualShift.x, (float)visualShift.y, 0);
-            
-            Vector3 near = graphics.GraphicsDevice.Viewport.Unproject(new Vector3(mouse.X, mouse.Y, 0.3f),
-                    cameraProjection, cameraView, transformation);
-            Vector3 far = graphics.GraphicsDevice.Viewport.Unproject(new Vector3(mouse.X, mouse.Y, 1f),
-                    cameraProjection, cameraView, transformation);
-            mouseRay = new Vector(far.X - near.X, far.Y - near.Y, far.Z - near.Z);
-            mousePos = new Vector(near.X, near.Y, near.Z);
-
-            if (simulation.Cells.Count < 500 || mouse.LeftButton == ButtonState.Pressed)
-            {
-                simulation.ReTarget(mouseRay, mousePos);
-            }
-        }*/
-
-/*        public int frames;
-        public DateTime initTime = DateTime.Now;
-        private void ReInitializeDevice()
-        {
-            deviceBlock = true;
-            if (device == null) return;
-            device.RenderState.Lighting = true;
-
-            device.Lights[0].Type = LightType.Directional;
-            device.Lights[0].Diffuse = Color.White;
-            device.Lights[0].Direction = new Vector3(0, 0, -1);
-            device.Lights[0].Update();
-            device.Lights[0].Enabled = true;
-
-
-            device.SamplerState[0].MinFilter = TextureFilter.Anisotropic;
-            device.SamplerState[0].MagFilter = TextureFilter.Anisotropic;
-
-            device.SamplerState[0].AddressU = TextureAddress.Mirror;
-            device.SamplerState[0].AddressV = TextureAddress.Mirror;
-* /
-           
-
-            deviceBlock = false;
-        }*/
 
         /// <summary>
         /// Sets up objects and graphical meshes
@@ -299,47 +215,7 @@ namespace EvoDevo4
             cellMaterial[7] = Color.LemonChiffon;
             cellMaterial[8] = Color.BurlyWood;
             cellMaterial[9] = Color.Gainsboro;
-
-            selectedCellMaterial = Color.Gray;
         }
-
-        /// <summary>
-        /// Sets up connection to a device
-        /// </summary>
-        /// <returns>True if device was created successfully and false othewise</returns>
-        /*public bool InitializeDevice()
-        {
-            deviceBlock = true;
-            PresentParameters presentParams = new PresentParameters();
-            presentParams.Windowed = true;
-            presentParams.SwapEffect = SwapEffect.Discard;
-            presentParams.AutoDepthStencilFormat = DepthFormat.D24S8;
-            presentParams.EnableAutoDepthStencil = true;
-            
-            device = new Device(0, DeviceType.Hardware, this, CreateFlags.SoftwareVertexProcessing, presentParams);
-            if (device == null) return (false);
-            device.RenderState.Lighting = true;
-            device.RenderState.CullMode = Cull.None;
-            device.Lights[0].Type = LightType.Directional;
-            device.Lights[0].Diffuse = Color.White;
-            device.Lights[0].Direction = new Vector3(0, 0, -1);
-            device.Lights[0].Update();
-            device.Lights[0].Enabled = true;
-
-            device.SamplerState[0].MinFilter = TextureFilter.Anisotropic;
-            device.SamplerState[0].MagFilter = TextureFilter.Anisotropic;
-            
-            device.SamplerState[0].AddressU = TextureAddress.Mirror;
-            device.SamplerState[0].AddressV = TextureAddress.Mirror;
-            
-            //device.DeviceResizing += new System.ComponentModel.CancelEventHandler(device_DeviceResizing);
-            device.DeviceReset += new EventHandler(device_DeviceReset);
-            device.Disposing += new EventHandler(device_Disposing);
-            
-            
-            deviceBlock = false;
-            return (true);
-        }*/
 
         void device_Disposing(object sender, EventArgs e)
         {
@@ -350,31 +226,14 @@ namespace EvoDevo4
             throw new NotImplementedException();
         }
 
-
-
         void device_DeviceResizing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             deviceBlock = true;
         }
 
-        /*protected override void  OnSizeChanged(EventArgs e)
-        {
-            ReInitializeDevice();
-            SetUpCamera();
-            this.Invalidate();
-            deviceBlock = false;
-        }*/
-
-        /*private void SetUpCamera()
-        {
-            cameraProjection = Matrix.CreatePerspectiveFieldOfView((float)Math.PI / 8, 1f/ *(float)this.Width / (float)this.Height* /, 0.3f, 400f);
-            cameraView = Matrix.CreateLookAt(new Vector3(0f, 0f, 190f), new Vector3(0, 0, 0), new Vector3(0, 1, 0));
-        }*/
-
         protected override void Update(GameTime gameTime) {
             base.Update(gameTime);
             HandleKeyboard(Keyboard.GetState());
-            //HandleMouse(Mouse.GetState());
         }
 
         protected override void OnExiting(Object sender, EventArgs args)
@@ -391,73 +250,26 @@ namespace EvoDevo4
                 return;
             }
             forceRedraw = false;
-            //SetUpCamera();
-            GraphicsDevice.Clear(Color.LightGray);//Color.GhostWhite);
+            GraphicsDevice.Clear(Color.LightGray);
 
-            //frames++;
             try
             {
-                //device.Clear(ClearFlags.Target | ClearFlags.ZBuffer, Color.White, 1.0f, 0);
-//                using (GraphicsDevice device = graphics.GraphicsDevice) {
-//                    device.Clear(Color.White);
                 if (simulation.paused) {
                     cameraPosition = Vector3.Transform(cameraPosition - cameraLooksAt,
                             Matrix.CreateFromAxisAngle(upVector, -0.01f)) + cameraLooksAt;
                 }
                     PlaceCamera();
-                    //device.BeginScene();
-
-
-                    //device.Transform.World = Matrix.Identity;
-
-
-//                    device.SetVertexBuffer(vb);
-//                    device.Indices = ib;
-
-                    //device.Transform.World = Matrix.Translation(-HEIGHT / 2, -WIDTH / 2, 0);
-
-                   
-                    
-                    //device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, WIDTH * HEIGHT, 0, indices.Length / 3);
-                    //device.DrawIndexedUserPrimitives(PrimitiveType.TriangleList, 0, indices.Length, indices.Length / 3, indices, true, vertices);
-                    
                     DrawCells();
                     DrawConcentrations();
-                    //DrawTargetData();
-                    //DrawConcentrationsData();
-                    
-                    //device.EndScene();
-                    //if (screenshotAwaiting||rendering)
-                    //    Screenshot();
-
-//                    device.Present();
-//                }
-                //this.Invalidate();
             }
             catch (Exception e)
             {
-                deviceBlock = true;
-                try
-                {
-                    //device.EndScene();
-                }
-                catch (Exception)
-                {
-                    //ignored
-                }
-                //ReInitializeDevice();
-                //SetUpCamera();
-                //this.Invalidate();
-                deviceBlock = false;
                 Console.WriteLine("OOPS. Rendering exception occured and was brutally ignored" + e.Message);
             }
         }
 
         private void PlaceCamera()
         {
-            /*effect.DirectionalLight0.DiffuseColor = Color.White.ToVector3();
-            effect.DirectionalLight0.Direction = cameraLooksAt - cameraPosition;
-            effect.DirectionalLight0.Enabled = true;*/
             effect.EnableDefaultLighting();
 
             cameraProjection = Matrix.CreatePerspectiveFieldOfView((float)Math.PI / 8,
@@ -493,6 +305,7 @@ namespace EvoDevo4
 
             graphics.GraphicsDevice.BlendState = BlendState.Opaque;
         }
+
         private int WhoSCloser(Source a, Source b)
         {
             Vector diff = a.position - b.position;
@@ -507,32 +320,9 @@ namespace EvoDevo4
                 return -1;
             return 0;
         }
-        /*private void DrawConcentrationsData()
-        {
-            / *string outStr = "(";
-            for (int i=0;i<SignallingProtein.Array.Count;i++)
-            {
-                if (i > 0)
-                    outStr += ", ";
-                outStr += simulation.GetConcentration(mousePosition, i).ToString("f");
-            }
-            outStr += ")";* /
-            string outStr = mouseRay.x + " " + mouseRay.y + " " + mouseRay.z;
-            //TextRenderer.DrawText(null, outStr, new Point(10, this.ClientSize.Height - 40), Color.DarkGreen);
-        }*/
 
-        /*private void DrawTargetData()
-        {            
-            if (simulation.selectionTarget != null)
-            {
-                Cell cell = simulation.selectionTarget;
-                
-                //TextRenderer.DrawText(null, cell.ToString(), new Point(20, 28), Color.DarkBlue);
-            }
-        }*/
         private void DrawCells()
         {
-            //device.SetTexture(0, null);
             bool[] visibility = session.Controls.visibility();
             foreach (Cell currenttarget in simulation.Cells)
             {
@@ -558,50 +348,7 @@ namespace EvoDevo4
                 effect.World = location;
                 effect.DiffuseColor = currentMaterial.ToVector3();
                 sphere.Draw(effect);
-                //cellmesh.DrawSubset(0);
-
-
             }
-            /*if (simulation.selectionTarget != null)
-            {
-                Cell currenttarget = simulation.selectionTarget;
-                //device.Transform.World = Matrix.Scaling((float)currenttarget.radius, (float)currenttarget.radius, (float)currenttarget.radius) * Matrix.Translation((float)currenttarget.position.x + (float)visualShift.x, (float)currenttarget.position.y + (float)visualShift.y, 0);
-                device.Transform.World = Matrix.Scaling((float)currenttarget.radius, (float)currenttarget.radius, (float)currenttarget.radius) * Matrix.Translation((float)currenttarget.position.x, (float)currenttarget.position.y, (float)currenttarget.position.z);
-                
-                device.Material = selectedCellMaterial;
-                cellmesh.DrawSubset(0);
-            }*/
         }
-   
-        static Random random = new Random();
-
-
-    /*private void RenderWindow_MouseDown(object sender, MouseEventArgs e)
-        {
-            if (e.Button == MouseButtons.Left)
-            {
-                Vector3 near = new Vector3(e.X, e.Y, 1f);
-                Viewport vp = new Viewport();
-                vp.MaxDepth = 1;
-                vp.MinDepth = 0;
-                vp.X = 0;
-                vp.Y = 0;
-                vp.Height = this.ClientSize.Height;
-                vp.Width = this.ClientSize.Width;
-
-                Matrix transformation = Matrix.CreateTranslation((float)visualShift.x, (float)visualShift.y, 0);
-                vp.Unproject(near, cameraProjection, cameraView, transformation);
-                near.X *= 0.95f;
-                near.Y *= 0.95f;
-
-                startDragPosition.x = near.X - visualShift.x;
-                startDragPosition.y = near.Y - visualShift.y;
-                isDragging = true;
-            }
-            else
-            {
-                Console.WriteLine(e.Button);
-            }
-        }*/
     }
 }

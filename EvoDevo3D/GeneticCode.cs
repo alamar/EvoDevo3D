@@ -311,8 +311,7 @@ namespace EvoDevo4
         private void tsbPlay_Click(object sender, EventArgs e)
         {
             if (!runs()) {
-                Cell.Recompile();
-                Simulation simulation = new Simulation();
+                Simulation simulation = new Simulation(Cell.Recompile());
                 // XXX bad
                 Thread heartbeatThread = new Thread(simulation.ActionsManager);
                 heartbeatThread.IsBackground = true;
