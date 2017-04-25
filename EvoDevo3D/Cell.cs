@@ -398,6 +398,11 @@ namespace EvoDevo4
             age++;
         }
 
+        private Cell CreateNew(Vector newPosition) {
+            return (Cell) Activator.CreateInstance(GetType(), simulation,
+                newPosition, this.radius, this.resilience);
+        }
+
         #region      --- Genetic Actions ---
 
         /// <summary>
@@ -406,8 +411,7 @@ namespace EvoDevo4
         /// <returns></returns>
         public Cell SpawnWherever()
         {
-            Cell newCell = (Cell) Activator.CreateInstance(GetType(), simulation,
-                    this.position + (Vector.CreateRandom() * this.radius / 5), this.radius, this.resilience);
+            Cell newCell = CreateNew(this.position + (Vector.CreateRandom() * this.radius / 5));
             numDivisions++;
             newCell.InheritFrom(this);
             simulation.RegisterNewCell(newCell);
@@ -421,8 +425,7 @@ namespace EvoDevo4
         /// <returns></returns>
         public Cell SpawnAt(double x, double y, double z)
         {
-            Cell newCell = (Cell) Activator.CreateInstance(GetType(), simulation,
-                    new Vector(x, y, z), this.radius, this.resilience);
+            Cell newCell = CreateNew(new Vector(x, y, z));
             numDivisions++;
             newCell.InheritFrom(this);
             simulation.RegisterNewCell(newCell);
