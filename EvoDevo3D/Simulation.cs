@@ -14,9 +14,17 @@ namespace EvoDevo4
     public class Simulation
     {
         public Queue<char> AwaitingQueue = new Queue<char>();
-
         public enum State {None, Passive, Active};
         public State state = State.None;
+        private int step;
+        public int Step
+        {
+            get
+            {
+                return step;
+            }
+        }
+
         public const double ALMOST_ZERO = 0.000001;
         public Cell selectionTarget;
         private bool PassiveMovementBlock = false;
@@ -430,7 +438,7 @@ namespace EvoDevo4
         public void GeneticTick()
         {
             PassiveMovementBlock = true;
-            foreach (Cell cell in Cells.GetRange(0, Cells.Count))
+            foreach (Cell cell in Cells.Copy())
             {
                 cell.LiveOn();                
             }
@@ -439,6 +447,7 @@ namespace EvoDevo4
                 cell.surroundingCells = GetSurroungingCells(cell);
             }
             PassiveMovementBlock = false;
+            step++;
         }
 
         internal void ReTarget(Vector mouseRay, Vector mousePos)

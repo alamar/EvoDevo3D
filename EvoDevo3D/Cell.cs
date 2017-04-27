@@ -19,6 +19,7 @@ namespace EvoDevo4
         public Vector position;
         public Vector passiveMovingDirection;
         public double radius;
+        public int turn = 0;
         public int age = 0;
         public int numDivisions = 0;
         public double resilience; //упругость если что :)
@@ -37,6 +38,14 @@ namespace EvoDevo4
             {
                 if (value > Simulation.ALMOST_ZERO && value < this.radius)
                     MOVINGSPEED = value;
+            }
+        }
+
+        public int step
+        {
+            get
+            {
+                return simulation.Step;
             }
         }
         public Vector polarization;
