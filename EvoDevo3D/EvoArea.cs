@@ -282,7 +282,7 @@ namespace EvoDevo4
         private void DrawConcentrations()
         {
             List<Source> sortedSources = new List<Source>();
-            foreach (Source source in simulation.Sources)
+            foreach (Source source in simulation.Sources.Copy())
             {
                 sortedSources.Add(source);
             }
@@ -324,7 +324,7 @@ namespace EvoDevo4
         private void DrawCells()
         {
             bool[] visibility = session.Controls.visibility();
-            foreach (Cell currenttarget in simulation.Cells)
+            foreach (Cell currenttarget in simulation.Cells.Copy())
             {
                 if (currenttarget.cellType >= 0 && currenttarget.cellType < visibility.Length && !visibility[currenttarget.cellType])
                 {

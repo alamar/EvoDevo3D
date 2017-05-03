@@ -27,7 +27,7 @@ namespace EvoDevo4
         public Vector activeMovingDirection;
         public double desiredDistance;
         private double MOVINGSPEED;
-        public int serviceTag;
+        public string state = "default"; // for multi-step state transforms
         public double movingSpeed
         {
             get
@@ -317,6 +317,7 @@ namespace EvoDevo4
             this.cellType = ancestor.cellType;
             this.age = ancestor.age;
             this.numDivisions = ancestor.numDivisions;
+            this.state = ancestor.state;
             for (int i = 0; i < SignallingProtein.Array.Count; i++)
             {
                 secrettingNow[i] = false;

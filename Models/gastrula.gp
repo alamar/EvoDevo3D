@@ -1,6 +1,6 @@
 int MORULA_AGE = 10;
 int BLASTULA_AGE = 30;
-int GASTRULA_AGE = 35;
+int GASTRULA_AGE = 50;
 
 int ECTODERM = 1;
 int ENDODERM = 2;
@@ -14,6 +14,10 @@ foreach (Cell cell in linkedCells) {
     linkedControl |= (cell.cellType == CONTROL);
 }
 
+if (state == "default")
+{
+    state = rnd > 0.5 ? "immigration" : "invagination";
+}
 
 if (step <= MORULA_AGE)
 {
@@ -41,7 +45,7 @@ else if (step < BLASTULA_AGE)
 }
 else if (step == BLASTULA_AGE && cellType == 0)
 {
-    if (rnd < 0.45)
+    if (state == "immigration" ? (rnd < 0.45) : (sensorReaction[CONTROL] > 0.01))
     {
         cellType = ENDODERM;
         Spill(ENDODERM);
@@ -57,10 +61,23 @@ else if (step < GASTRULA_AGE)
     switch (cellType)
     {
         case 1:
-            MoveGradient(1, true, true, -0.2);
+            MoveGradient(ECTODERM, true, true, -0.2);
             break;
         case 2:
-            MoveGradient(2, true, true, 1.0);
+            Vector outside = Vector.Invert(simulation.GetGradient(position, ECTODERM)).Normalize(1.0);
+            bool coveredByEctoderm = false;
+            foreach (Cell cell in surroundingCells)
+            {
+                Vector difference = (cell.position - position).Normalize(1.0) - outside;
+                if (cell.cellType == ECTODERM && difference.Length < 1.0)
+                {
+                     coveredByEctoderm = true;
+                     break;
+                }
+            }
+            if (!coveredByEctoderm) {
+                MoveGradient(ECTODERM, true, true, 1.0);
+            }
             break;
     }
 } else if (step == GASTRULA_AGE) {
