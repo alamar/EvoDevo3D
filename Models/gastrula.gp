@@ -7,12 +7,16 @@ int ENDODERM = 2;
 int MOUTH = 3;
 int CONTROL = 4;
 
-bool mixedLinks = false;
+int mixedLinksCount = 0;
 bool linkedControl = (cellType == CONTROL);
 foreach (Cell cell in linkedCells) {
-    mixedLinks |= (cell.cellType != cellType);
     linkedControl |= (cell.cellType == CONTROL);
+    if (cell.cellType != cellType)
+    {
+        mixedLinksCount++;
+    }
 }
+bool mixedLinks = mixedLinksCount > 2;
 
 if (state == "default")
 {
@@ -81,7 +85,7 @@ else if (step < GASTRULA_AGE)
             break;
     }
 } else if (step == GASTRULA_AGE) {
-    if (!linkedControl)
+    if (state == "immigration" && !linkedControl)
     {
         int links = 0;
         BreakFree();
@@ -97,13 +101,19 @@ else if (step < GASTRULA_AGE)
             }
         }
     }
-} else {
-    if (linkedControl && (cellType == ECTODERM || cellType == ENDODERM))
+} else if (step == (GASTRULA_AGE + 1)) {
+    if (mixedLinks && cellType == ECTODERM)
     {
         DeSpill(ECTODERM);
         DeSpill(ENDODERM);
         Spill(MOUTH);
         cellType = MOUTH;
     }
-    MoveGradient(cellType, true, true, -0.1);
+} else {
+    if (cellType == MOUTH)
+    {
+        MoveToTheCrowd(true, 0.5);
+    } else {
+        MoveGradient(cellType, true, true, -0.1);
+    }
 }
