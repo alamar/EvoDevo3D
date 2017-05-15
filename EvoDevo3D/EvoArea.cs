@@ -13,13 +13,11 @@ namespace EvoDevo4
     {
         // XXX remove?
         private Simulation simulation;
-        private Session session;
-        public Session Session
+        public Simulation Simulation
         {
             set
             {
-                session = value;
-                simulation = session.Simulation;
+                simulation = value;
             }
         }
         private Matrix cameraProjection = Matrix.Identity;
@@ -49,6 +47,7 @@ namespace EvoDevo4
 
             graphics.PreferMultiSampling = true;
             graphics.IsFullScreen = false;
+            IsFixedTimeStep = false;
         }
 
         protected override void LoadContent()
@@ -234,6 +233,7 @@ namespace EvoDevo4
         protected override void Update(GameTime gameTime) {
             base.Update(gameTime);
             HandleKeyboard(Keyboard.GetState());
+            simulation.newActionAllowed = true;
         }
 
         protected override void OnExiting(Object sender, EventArgs args)
@@ -245,11 +245,11 @@ namespace EvoDevo4
  
         protected override void Draw(GameTime gameTime)
         {
-            if (deviceBlock || (!forceRedraw && simulation.state != Simulation.State.None))
+            /*if (deviceBlock || (!forceRedraw && simulation.state != Simulation.State.None))
             {
                 return;
             }
-            forceRedraw = false;
+            forceRedraw = false;*/
             GraphicsDevice.Clear(Color.LightGray);
 
             try
@@ -261,6 +261,7 @@ namespace EvoDevo4
                     PlaceCamera();
                     DrawCells();
                     DrawConcentrations();
+                    this.Window.Title = "Cells: " + simulation.Cells.Count + " Age: " + simulation.Cells[0].age;
             }
             catch (Exception e)
             {
@@ -323,13 +324,15 @@ namespace EvoDevo4
 
         private void DrawCells()
         {
-            bool[] visibility = session.Controls.visibility();
+            //bool[] visibility = session.Controls.visibility();
             foreach (Cell currenttarget in simulation.Cells.Copy())
             {
-                if (currenttarget.cellType >= 0 && currenttarget.cellType < visibility.Length && !visibility[currenttarget.cellType])
+              /*if (currenttarget.cellType >= 0
+                        && currenttarget.cellType < visibility.Length
+                        && !visibility[currenttarget.cellType])
                 {
                    continue;
-                }
+                }*/
 
                 Matrix location = Matrix.CreateScale((float)currenttarget.radius,
                             (float)currenttarget.radius, (float)currenttarget.radius)
