@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -305,26 +306,37 @@ namespace EvoDevo4
         public void btnCompile_Click(object sender, EventArgs e)
         {
             Cell.GeneticCode = rtCode.Text;
-            Cell.Recompile();
+            Cell.Recompile(str => MessageBox.Show(str));
         }
 
         private void tsbPlay_Click(object sender, EventArgs e)
         {
-            if (!runs()) {
+            if (Cell.Recompile(str => MessageBox.Show(str)) != null)
+            {
+                string programPath = Path.GetTempPath()
+                        + Guid.NewGuid().ToString() + ".gp";
+                File.WriteAllText(programPath, Cell.GeneticCode);
+
+                ProcessStartInfo start = new ProcessStartInfo();
+                start.Arguments = programPath; 
+                start.FileName = Path.GetDirectoryName(
+                            Application.ExecutablePath)
+                        + Path.DirectorySeparatorChar + "EvoDevo3D.exe";
+                start.UseShellExecute = false;
+
+                Process.Start(start);
+            /*
                 Simulation simulation = new Simulation(Cell.Recompile());
-                // XXX bad
-                Thread heartbeatThread = new Thread(simulation.ActionsManager);
-                heartbeatThread.IsBackground = true;
-                heartbeatThread.Start();
                 Thread evoAreaThread = new Thread(() => {
                     EvoArea evoArea = new EvoArea();
                     runningSession = new Session(this, simulation, evoArea);
-                    evoArea.Session = runningSession;
+                    evoArea.Simulation = simulation;
                     runningSession.resume();
                     evoArea.Run();
+                    evoArea.Dispose();
                 });
                 evoAreaThread.IsBackground = true;
-                evoAreaThread.Start();
+                evoAreaThread.Start();*/
             }
 
             tsbPause.Enabled = true;
@@ -334,7 +346,7 @@ namespace EvoDevo4
         private void tsbPause_Click(object sender, EventArgs e)
         {
             bool running = runningSession.toggle();
-            tsbPause.Enabled = running;
+          //tsbPause.Enabled = running;
             tsbPlay.Enabled = !running;
         }
 
@@ -345,7 +357,7 @@ namespace EvoDevo4
                 runningSession.Simulation.AwaitingQueue.Enqueue('s');
                 runningSession.resume();
                 runningSession.Simulation.newActionAllowed = true;
-                tsbPause.Enabled = false;
+                //tsbPause.Enabled = false;
                 tsbPlay.Enabled = true;
             }
         }
@@ -395,12 +407,12 @@ namespace EvoDevo4
                 lblProcess.Text = "Process: " + runningSession.Simulation.state;
                 lblCells.Text = "Cells: " + runningSession.Simulation.Cells.Count + " Age: " + runningSession.Simulation.Cells[0].age;
                 tsbPlay.Enabled = runningSession.Simulation.paused;
-                tsbPause.Enabled = !runningSession.Simulation.paused;
+                //tsbPause.Enabled = !runningSession.Simulation.paused;
             }
             else
             {
                 tsbPlay.Enabled = true;
-                tsbPause.Enabled = false;
+                //tsbPause.Enabled = false;
             }
         }
 

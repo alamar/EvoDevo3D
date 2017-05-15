@@ -223,7 +223,7 @@ namespace EvoDevo4
 
         public abstract void CellLiveOn();
 
-        public static Type Recompile()
+        public static Type Recompile(Action<String> onError)
         {
             CodeDomProvider provider = new CSharpCodeProvider();
             string script = geneCodeTemplatePiece1 + geneCodeTemplatePiece2 + geneCodeTemplatePiece3 + GeneticCode + geneCodeTemplateEnd;
@@ -231,7 +231,9 @@ namespace EvoDevo4
             if (CompiledGeneticStrategy.Errors.HasErrors)
             {
                 foreach (CompilerError err in CompiledGeneticStrategy.Errors)
-                    System.Windows.Forms.MessageBox.Show(err.ErrorText);
+                {
+                    onError(err.ErrorText);
+                }
                 return null;
             }
             return CompiledGeneticStrategy.CompiledAssembly.GetType("CellStrategy");

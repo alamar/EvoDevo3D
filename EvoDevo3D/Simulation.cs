@@ -13,6 +13,7 @@ namespace EvoDevo4
 {
     public class Simulation
     {
+        private Thread heartbeatThread;
         public Queue<char> AwaitingQueue = new Queue<char>();
         public enum State {None, Passive, Active};
         public State state = State.None;
@@ -28,7 +29,7 @@ namespace EvoDevo4
         public const double ALMOST_ZERO = 0.000001;
         public Cell selectionTarget;
         private bool PassiveMovementBlock = false;
-        public volatile bool paused=true;
+        public volatile bool paused = false;
         public volatile bool newActionAllowed = false;
 
         public List<Cell> Cells = new List<Cell>();
@@ -185,6 +186,9 @@ namespace EvoDevo4
             AwaitingQueue.Enqueue('p');
             AwaitingQueue.Enqueue('p');
             AwaitingQueue.Enqueue('p');
+            heartbeatThread = new Thread(ActionsManager);
+            heartbeatThread.IsBackground = true;
+            heartbeatThread.Start();
         }
         
         
