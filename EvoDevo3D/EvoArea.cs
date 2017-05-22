@@ -45,7 +45,6 @@ namespace EvoDevo4
         {
             graphics = new GraphicsDeviceManager (this);
 
-            graphics.PreferMultiSampling = true;
             graphics.IsFullScreen = false;
             IsFixedTimeStep = false;
         }
