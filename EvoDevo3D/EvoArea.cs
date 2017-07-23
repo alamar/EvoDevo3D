@@ -1,7 +1,11 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Text;
+using System.Threading;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -26,7 +30,6 @@ namespace EvoDevo4
         private SpherePrimitive[] concentrationSpheres;
         private Color[] cellMaterial;
         int cellSelectionIndex;
-        private bool deviceBlock = true;
         public bool screenshotAwaiting = false;
         public bool rendering = false;
         private Vector3 cameraPosition = new Vector3(0, 0, 200);
@@ -36,7 +39,10 @@ namespace EvoDevo4
         private float cameraPositionAngleAroundRightVector = 0;
         private GraphicsDeviceManager graphics;
         private BasicEffect effect;
-        private bool forceRedraw = false;
+        private bool[] visibility;
+
+        private readonly BlockingCollection<int> buffer = new BlockingCollection<int>(1);
+        private readonly Thread readThread;
 
         /// <summary>
         /// Creates new Render window instance;
@@ -44,6 +50,22 @@ namespace EvoDevo4
         public EvoArea()
         {
             graphics = new GraphicsDeviceManager (this);
+            readThread = new Thread(() => {
+                if (Console.IsInputRedirected) {
+                    int i;
+                    do {
+                        i = Console.Read();
+                        buffer.Add(i);
+                    } while (i != -1);
+                } else {
+                    while (true) { 
+                        var consoleKeyInfo = Console.ReadKey(true);
+                        if (consoleKeyInfo.KeyChar == 0) continue;  // ignore dead keys
+                        buffer.Add(consoleKeyInfo.KeyChar);
+                    }
+                }
+            });
+            readThread.Start();
 
             graphics.IsFullScreen = false;
             IsFixedTimeStep = false;
@@ -52,16 +74,23 @@ namespace EvoDevo4
         protected override void LoadContent()
         {
             InitializeObjects();
-            deviceBlock = false;
         }
 
-        private void HandleKeyboard(KeyboardState keyboard)
+        private void HandleKeyboard(KeyboardState keyboard, int stdin)
         {
-            if (keyboard.GetPressedKeys().Length == 0)
+            if (keyboard.GetPressedKeys().Length == 0 && stdin == 0)
             {
                 return;
             }
-            this.forceRedraw = true;
+
+            if (stdin >= 'a' && stdin < 'k')
+            {
+                visibility[stdin - 'a'] = false;
+            }
+            if (stdin >= 'A' && stdin < 'K')
+            {
+                visibility[stdin - 'A'] = true;
+            }
 
             Vector3 move = Vector3.Zero;
             Vector3 zoom = Vector3.Zero;
@@ -76,8 +105,11 @@ namespace EvoDevo4
             float upVectorTurn = 0;
 
             bool shiftPressed = keyboard.IsKeyDown(Keys.RightShift) || keyboard.IsKeyDown(Keys.LeftShift);
-            if (keyboard.IsKeyDown(Keys.Space))
-                screenshotAwaiting = true;
+            if (keyboard.IsKeyDown(Keys.Space) || stdin == ' ')
+            {
+                // XXX Track single press!
+                simulation.paused = !simulation.paused;
+            }
             if (keyboard.IsKeyDown(Keys.W) && !shiftPressed)
             {
                 cameraPositionAngleAroundRightVector = +0.1f;
@@ -134,6 +166,17 @@ namespace EvoDevo4
             {
                 zoom -= dst;
             }
+            if (keyboard.IsKeyDown(Keys.S) || stdin == 's')
+            {
+                simulation.AwaitingQueue.Enqueue('s');
+                simulation.paused = false;
+                simulation.newActionAllowed = true;
+            }
+            if ((keyboard.IsKeyDown(Keys.X) && shiftPressed)
+                || stdin == 'X')
+            {
+                Exit();
+            }
             if (move.Length() > 0)
             {                
                 cameraPosition += move;
@@ -162,7 +205,6 @@ namespace EvoDevo4
                 normalUnCamera.Normalize();
                 upVector = Vector3.Transform(upVector,
                         Matrix.CreateFromAxisAngle(normalUnCamera, upVectorTurn));
-                return;
             }
             if (keyboard.IsKeyUp(Keys.Tab))
             {
@@ -213,33 +255,23 @@ namespace EvoDevo4
             cellMaterial[7] = Color.LemonChiffon;
             cellMaterial[8] = Color.BurlyWood;
             cellMaterial[9] = Color.Gainsboro;
+            visibility = Enumerable.Repeat(true, 10).ToArray();
         }
 
-        void device_Disposing(object sender, EventArgs e)
+        protected override void Update(GameTime gameTime)
         {
-        }
-
-        void device_DeviceReset(object sender, EventArgs e)
-        {
-            throw new NotImplementedException();
-        }
-
-        void device_DeviceResizing(object sender, System.ComponentModel.CancelEventArgs e)
-        {
-            deviceBlock = true;
-        }
-
-        protected override void Update(GameTime gameTime) {
             base.Update(gameTime);
-            HandleKeyboard(Keyboard.GetState());
             simulation.newActionAllowed = true;
+
+            int stdin;
+            HandleKeyboard(Keyboard.GetState(), 
+                buffer.TryTake(out stdin, 0) ? stdin : 0);
         }
 
         protected override void OnExiting(Object sender, EventArgs args)
         {
             base.OnExiting(sender, args);
-            simulation.paused = true;
-            Exit();
+            Environment.Exit(0);
         }
  
         protected override void Draw(GameTime gameTime)
@@ -326,12 +358,12 @@ namespace EvoDevo4
             //bool[] visibility = session.Controls.visibility();
             foreach (Cell currenttarget in simulation.Cells.Copy())
             {
-              /*if (currenttarget.cellType >= 0
+                if (currenttarget.cellType >= 0
                         && currenttarget.cellType < visibility.Length
                         && !visibility[currenttarget.cellType])
                 {
                    continue;
-                }*/
+                }
 
                 Matrix location = Matrix.CreateScale((float)currenttarget.radius,
                             (float)currenttarget.radius, (float)currenttarget.radius)

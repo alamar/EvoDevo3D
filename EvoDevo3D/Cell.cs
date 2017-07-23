@@ -252,6 +252,7 @@ namespace EvoDevo4
                 parms.ReferencedAssemblies.Add(Reference);
             parms.ReferencedAssemblies.Add("System.Windows.Forms.dll");
             parms.ReferencedAssemblies.Add("System.dll");
+            parms.ReferencedAssemblies.Add("System.Core.dll");
             parms.ReferencedAssemblies.Add(Assembly.GetExecutingAssembly().Location);
             // Compile
             results = Provider.CompileAssemblyFromSource(parms, Source);

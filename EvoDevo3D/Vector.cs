@@ -137,6 +137,17 @@ namespace EvoDevo4
             return (new Vector(x, y, z));
         }
 
+        public double Angle(Vector to)
+        {
+
+            return Math.Acos(Math.Min(Math.Max(Normalize().Dot(to.Normalize()), -1f), 1f)) * 57.29578f;
+        }
+
+        public double Dot(Vector rhs)
+        {
+            return x * rhs.x + y * rhs.y + z * rhs.z;
+        }
+
         /// <summary>
         /// Creates vector opposite of given
         /// </summary>
@@ -197,7 +208,7 @@ namespace EvoDevo4
         {
             get
             {
-                return (Math.Sqrt(x*x + y*y + z*z));
+                return mod;
             }
             set
             {
@@ -207,7 +218,7 @@ namespace EvoDevo4
                     this.y = 0;
                     this.z = 0;
                 }
-                if ((x*x+ y*y+z*z) > Simulation.ALMOST_ZERO)
+                if (modSq > Simulation.ALMOST_ZERO)
                 {
                     Vector temp = this.Normalize(value);
                     this.x = temp.x;

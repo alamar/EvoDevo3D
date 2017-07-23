@@ -35,7 +35,9 @@ namespace EvoDevo4
         private ToolStripLabel lblCells;
         private ToolStripLabel lblVisible;
 
-        private Session runningSession;
+
+        private Process evoArea;
+        private StreamWriter evoAreaInput;
 
         private string fileName = "";
 
@@ -115,8 +117,25 @@ namespace EvoDevo4
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.RenderWindow_FormClosing);
         }
 
-        public bool runs() {
-            return runningSession != null;
+        public bool runs()
+        {
+            if (evoArea == null)
+            {
+                return false;
+            }
+            if (evoArea.HasExited)
+            {
+                evoAreaInput.Close();
+                evoAreaInput = null;
+                evoArea = null;
+
+                tsbPlay.Enabled = true;
+                tsbPause.Enabled = false;
+                tsbStep.Enabled = false;
+                tsbClear.Enabled = false;
+                return false;
+            }
+            return true;
         }
 
         public static CompilerResults CompileScript(string Source, string Reference, CodeDomProvider Provider)
@@ -224,6 +243,7 @@ namespace EvoDevo4
             // tsbStep
             // 
             this.tsbStep.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.tsbStep.Enabled = false;
             this.tsbStep.Image = global::EvoDevo4.Properties.Resources.step;
             this.tsbStep.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbStep.Name = "tsbStep";
@@ -234,6 +254,7 @@ namespace EvoDevo4
             // tsbClear
             // 
             this.tsbClear.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.tsbClear.Enabled = false;
             this.tsbClear.Image = global::EvoDevo4.Properties.Resources.clear;
             this.tsbClear.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbClear.Name = "tsbClear";
@@ -265,6 +286,8 @@ namespace EvoDevo4
                 this.chbVisible[i].Size = new System.Drawing.Size(23, 23);
                 this.chbVisible[i].Text = i.ToString();
                 this.chbVisible[i].Alignment = ToolStripItemAlignment.Right;
+                this.chbVisible[i].CheckBox.CheckedChanged +=
+                    this.chbVisible_CheckedChanged(i);
             }
             // 
             // lblProcess
@@ -311,54 +334,48 @@ namespace EvoDevo4
 
         private void tsbPlay_Click(object sender, EventArgs e)
         {
-            if (Cell.Recompile(str => MessageBox.Show(str)) != null)
+            Cell.GeneticCode = rtCode.Text;
+            if (!runs() && Cell.Recompile(str => MessageBox.Show(str)) != null)
             {
                 string programPath = Path.GetTempPath()
                         + Guid.NewGuid().ToString() + ".gp";
                 File.WriteAllText(programPath, Cell.GeneticCode);
 
-                ProcessStartInfo start = new ProcessStartInfo();
-                start.Arguments = programPath; 
-                start.FileName = Path.GetDirectoryName(
+                evoArea = new Process();
+                evoArea.StartInfo.Arguments = programPath; 
+                evoArea.StartInfo.FileName = Path.GetDirectoryName(
                             Application.ExecutablePath)
                         + Path.DirectorySeparatorChar + "EvoDevo3D.exe";
-                start.UseShellExecute = false;
+                evoArea.StartInfo.UseShellExecute = false;
+                evoArea.StartInfo.RedirectStandardInput = true;
+                evoArea.StartInfo.RedirectStandardOutput = false;
 
-                Process.Start(start);
-            /*
-                Simulation simulation = new Simulation(Cell.Recompile());
-                Thread evoAreaThread = new Thread(() => {
-                    EvoArea evoArea = new EvoArea();
-                    runningSession = new Session(this, simulation, evoArea);
-                    evoArea.Simulation = simulation;
-                    runningSession.resume();
-                    evoArea.Run();
-                    evoArea.Dispose();
-                });
-                evoAreaThread.IsBackground = true;
-                evoAreaThread.Start();*/
+                evoArea.Start();
+
+                this.evoAreaInput = evoArea.StandardInput;
             }
 
             tsbPause.Enabled = true;
+            tsbStep.Enabled = true;
+            tsbClear.Enabled = true;
             tsbPlay.Enabled = false;
         }
 
         private void tsbPause_Click(object sender, EventArgs e)
         {
-            bool running = runningSession.toggle();
-          //tsbPause.Enabled = running;
-            tsbPlay.Enabled = !running;
+            if (runs())
+            {
+                evoAreaInput.Write(" ");
+                evoAreaInput.Flush();
+            }
         }
 
         private void tsbStep_Click(object sender, EventArgs e)
         {
-            if (runningSession != null)
+            if (runs())
             {
-                runningSession.Simulation.AwaitingQueue.Enqueue('s');
-                runningSession.resume();
-                runningSession.Simulation.newActionAllowed = true;
-                //tsbPause.Enabled = false;
-                tsbPlay.Enabled = true;
+                evoAreaInput.Write("s");
+                evoAreaInput.Flush();
             }
         }
 
@@ -374,46 +391,32 @@ namespace EvoDevo4
 
         private void tsbClear_Click(object sender, EventArgs e)
         {
-            if (MessageBox.Show("This will reset the world to initial state. Are you sure?", "EvoDevo IV", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation) == DialogResult.Yes)
+            if (MessageBox.Show("This will end the simulation. Are you sure?", "EvoDevo IV",
+                    MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation) == DialogResult.Yes)
             {
-                runningSession = null;
+                evoAreaInput.Write("X");
+                evoAreaInput.Flush();
             }
         }
 
-        public bool[] visibility()
+        public System.EventHandler chbVisible_CheckedChanged(int i)
         {
-            bool[] visibility = new bool[chbVisible.Length];
-
-            for (int i = 0; i < chbVisible.Length; i++)
+            return new System.EventHandler((sender, e) => 
             {
-                visibility[i] = chbVisible[i].CheckBox.Checked;
-            }
-            return visibility;
-        }
+                if (runs())
+                {
+                    CheckBox chb = (CheckBox) sender;
+                    char command = (char) ((chb.Checked ? 'A' : 'a') + i);
 
-        private void tmWorldHeartbeat_Tick(object sender, EventArgs e)
-        {
-            if (runs())
-            {
-                // XXX WTF
-                runningSession.Simulation.newActionAllowed = true;
-            }
+                    evoAreaInput.Write(command.ToString());
+                    evoAreaInput.Flush();
+                }
+            });
         }
 
         private void tmFPSChecker_Tick(object sender, EventArgs e)
         {
-            if (runs())
-            {
-                lblProcess.Text = "Process: " + runningSession.Simulation.state;
-                lblCells.Text = "Cells: " + runningSession.Simulation.Cells.Count + " Age: " + runningSession.Simulation.Cells[0].age;
-                tsbPlay.Enabled = runningSession.Simulation.paused;
-                //tsbPause.Enabled = !runningSession.Simulation.paused;
-            }
-            else
-            {
-                tsbPlay.Enabled = true;
-                //tsbPause.Enabled = false;
-            }
+            runs();
         }
 
         private void RenderWindow_FormClosing(object sender, FormClosingEventArgs e)
@@ -428,7 +431,7 @@ namespace EvoDevo4
             
             DialogResult dr = saveFileDialog1.ShowDialog();
 
-            if (saveFileDialog1.FileName.Length > 3)
+            if (dr == DialogResult.OK && saveFileDialog1.FileName.Length > 3)
             {
                 using (FileStream fs = new FileStream(saveFileDialog1.FileName, FileMode.Create))
                 {

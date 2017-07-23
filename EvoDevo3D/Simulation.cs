@@ -261,7 +261,6 @@ namespace EvoDevo4
             }
             foreach (Cell cell in TempActiveCells.OrderBy(a => Cell.random.Next()))
             {
-
                 double stepDist = ((cell.desiredDistance < cell.movingSpeed) ? cell.desiredDistance : cell.movingSpeed);
                 MoveMeAndMySwarm(cell, cell.activeMovingDirection * stepDist);
                 
@@ -340,9 +339,7 @@ namespace EvoDevo4
                     MapCell(connectedCell);
                 }
                 MapCell(cell);*/
-                cell.passiveMovingDirection.x = 0;
-                cell.passiveMovingDirection.y = 0;
-                cell.passiveMovingDirection.z = 0;
+                cell.passiveMovingDirection.Trivialize();
 
 
             }
