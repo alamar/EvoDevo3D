@@ -268,12 +268,6 @@ namespace EvoDevo4
             this.tmFPSChecker.Interval = 40;
             this.tmFPSChecker.Tick += new System.EventHandler(this.tmFPSChecker_Tick);
             // 
-            // tmWorldHeartbeat
-            // 
-            this.tmWorldHeartbeat.Enabled = true;
-            this.tmWorldHeartbeat.Interval = 50;
-            this.tmWorldHeartbeat.Tick += new System.EventHandler(this.tmWorldHeartbeat_Tick);
-            // 
             // chbVisible
             // 
             for (int i = 0; i < chbVisible.Length; i++)

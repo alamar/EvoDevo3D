@@ -19,8 +19,8 @@ namespace EvoDevo4
         public Vector position;
         public Vector passiveMovingDirection;
         public double radius;
-        public int turn = 0;
         public int age = 0;
+        public int stage = 0;
         public int numDivisions = 0;
         public double resilience; //упругость если что :)
         public bool IsMoving;
@@ -117,6 +117,7 @@ namespace EvoDevo4
         public const String geneCodeTemplatePiece3 = @" 
                                     public override void CellLiveOn()
                                     {
+                                        stage = 0;
                                         ";
         public static String geneCodeTemplateEnd = @"
                                         
@@ -418,6 +419,18 @@ namespace EvoDevo4
 
         #region      --- Genetic Actions ---
 
+        public bool Stage(int length, Action action)
+        {
+            int oldStage = stage;
+            stage = stage + length;
+            if (oldStage < step && stage >= step)
+            {
+                action();
+                return true;
+            }
+            return false;
+        }
+
         /// <summary>
         /// Creates an offspring cell. Divison plane is positioned randomly;
         /// </summary>
@@ -436,9 +449,9 @@ namespace EvoDevo4
         /// Creates an offspring cell at specified location.
         /// </summary>
         /// <returns></returns>
-        public Cell SpawnAt(double x, double y, double z)
+        public Cell SpawnAt(Vector v)
         {
-            Cell newCell = CreateNew(new Vector(x, y, z));
+            Cell newCell = CreateNew(v);
             numDivisions++;
             newCell.InheritFrom(this);
             simulation.RegisterNewCell(newCell);

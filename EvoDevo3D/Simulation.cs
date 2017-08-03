@@ -215,11 +215,12 @@ namespace EvoDevo4
             }
         }
 
-
         public void RegisterNewCell(Cell cell)
         {
             Cells.Add(cell);
+            cell.neighbours = GetMyAdjacentNeighbours(cell);
         }
+
         public void UnregisterCell(Cell cell)
         {
             lock (Cells)
@@ -234,10 +235,6 @@ namespace EvoDevo4
                 Cells.Remove(cell);
             }
         }
-
-        
-
-       
 
         public void Heartbeat()
         {
@@ -271,8 +268,6 @@ namespace EvoDevo4
                     cell.activeMovingDirection.Trivialize();
                     cell.IsMoving = false;
                 }
-
-
             }
             
             bool shouldLog = TempCells.Count > 1000;
@@ -318,7 +313,7 @@ namespace EvoDevo4
                         double dist = (cell.position - linked.position).Length;
                         if (dist > distLimit && dist > Simulation.ALMOST_ZERO)
                         {
-                            movingLength = 0.1 * cell.radius * (1 - distLimit / dist);
+                            movingLength = 0.1 * cell.radius * (dist / distLimit);
                             Vector temp = (linked.position - cell.position) * (movingLength / dist);
                             cell.passiveMovingDirection += temp;
                         }
