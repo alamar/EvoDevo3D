@@ -66,16 +66,20 @@ namespace EvoDevo4
                 return retval;
             }
         }
+        public double[] _sensorReaction;
         public double[] sensorReaction
         {
             get
             {
-                double[] retval = new double[SignallingProtein.Array.Count];
+                if (_sensorReaction != null)
+                    return _sensorReaction;
+
+                _sensorReaction = new double[SignallingProtein.Array.Count];
                 for (int i = 0; i < SignallingProtein.Array.Count; i++)
                 {
-                    retval[i] = simulation.GetConcentration(position, i) * sensitivity[i];
+                    _sensorReaction[i] = simulation.GetConcentration(position, i) * sensitivity[i];
                 }
-                return retval;
+                return _sensorReaction;
             }
         }
         public int neighbourCount
@@ -302,7 +306,7 @@ namespace EvoDevo4
             {
                 secrettingNow[i] = false;
                 secretLevel[i] = 0.5;
-                sensitivity[i] = 0.5;
+                sensitivity[i] = 1;
             }
             parent = null;
             offspring = new List<Cell>();
@@ -410,6 +414,7 @@ namespace EvoDevo4
         {
             CellLiveOn();
             age++;
+            _sensorReaction = null;
         }
 
         private Cell CreateNew(Vector newPosition) {
@@ -418,6 +423,29 @@ namespace EvoDevo4
         }
 
         #region      --- Genetic Actions ---
+
+        public void Pause() {
+            simulation.paused = true;
+        }
+
+        public bool P(double probability) {
+            return rnd < probability;
+        }
+
+        public bool Interject(int activateStep, Action action)
+        {
+            if (activateStep == step)
+            {
+                action();
+                stage = Int32.MaxValue;
+                return true;
+            }
+            else if (activateStep < step)
+            {
+                stage = stage + 1;
+            }
+            return false;
+        }
 
         public bool Stage(int length, Action action)
         {
@@ -527,6 +555,18 @@ namespace EvoDevo4
             {
                 this.secrettingNow[proteinID] = false;
                 simulation.UnRegister(proteinID, this);
+            }
+        }
+
+        public void DeSpillAll()
+        {
+            for (int proteinID = 0; proteinID < this.secrettingNow.Length; proteinID++)
+            {
+                if (this.secrettingNow[proteinID])
+                {
+                    this.secrettingNow[proteinID] = false;
+                    simulation.UnRegister(proteinID, this);
+                }
             }
         }
 
@@ -692,6 +732,19 @@ namespace EvoDevo4
                 return activeMovingDirection;
             }
             return null;
+        }
+
+        public bool Move(Vector direction, double distance, bool force)
+        {
+            if (!IsMoving || force)
+            {
+                activeMovingDirection = direction.Normalize();
+
+                IsMoving = true;
+                desiredDistance = distance;
+                return true;
+            }
+            return false;
         }
 
         #endregion

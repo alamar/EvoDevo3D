@@ -166,7 +166,7 @@ namespace EvoDevo4
             {
                 zoom -= dst;
             }
-            if (keyboard.IsKeyDown(Keys.S) || stdin == 's')
+            if (keyboard.IsKeyDown(Keys.Enter) || stdin == 's')
             {
                 simulation.AwaitingQueue.Enqueue('s');
                 simulation.paused = false;
@@ -292,7 +292,7 @@ namespace EvoDevo4
                     PlaceCamera();
                     DrawCells();
                     DrawConcentrations();
-                    this.Window.Title = "Cells: " + simulation.Cells.Count + " Age: " + simulation.Cells[0].age;
+                    this.Window.Title = "Age: " + simulation.Cells[0].age + " Cells: " + simulation.Cells.Count;
             }
             catch (Exception e)
             {

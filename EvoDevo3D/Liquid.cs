@@ -21,7 +21,7 @@ namespace EvoDevo4
             for (int i = 0; i < 2; i++)
             {
                 Array.Add(new SignallingProtein(0.9, Color.Blue));
-                Array.Add(new SignallingProtein(0.9, Color.Green));
+                Array.Add(new SignallingProtein(/*0.9198*/ 0.99, Color.Green));
                 Array.Add(new SignallingProtein(0.9, Color.Firebrick));
                 Array.Add(new SignallingProtein(0.8, Color.Bisque));
                 Array.Add(new SignallingProtein(0.8, Color.BurlyWood));

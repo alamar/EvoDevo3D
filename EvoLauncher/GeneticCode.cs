@@ -347,12 +347,12 @@ namespace EvoDevo4
                 evoArea.Start();
 
                 this.evoAreaInput = evoArea.StandardInput;
-            }
 
-            tsbPause.Enabled = true;
-            tsbStep.Enabled = true;
-            tsbClear.Enabled = true;
-            tsbPlay.Enabled = false;
+                tsbPause.Enabled = true;
+                tsbStep.Enabled = true;
+                tsbClear.Enabled = true;
+                tsbPlay.Enabled = false;
+            }
         }
 
         private void tsbPause_Click(object sender, EventArgs e)
