@@ -7,6 +7,8 @@ int CONTROL = 4;
 int CONTROLG = 4;
 int CONTROLD = 5;
 
+int REMERGE = 6;
+
 double MAX_LINK_LENGTH = 5.0;
 int MAX_LINKS = 10;
 
@@ -28,11 +30,12 @@ int nearCells = 0;
 
 foreach (Cell cell in surroundingCells)
 {
-    if ((position - cell.position).mod < 4.0)
+    if ((position - cell.position).mod < MAX_LINK_LENGTH)
     {
         nearCells++;
     }
 }
+
 
 if (cellType == STEM)
 {
@@ -57,8 +60,8 @@ if (cellType == ECTODERM)
         return;
     }
     DeSpillAll();
-    Spill(ECTODERM);
-    MoveGradient(ECTODERM, true, true, (nearCells >= 10) ? -0.25 : 0.5);
+    Spill(nearCells < 10 ? REMERGE : ECTODERM);
+    MoveGradient(ECTODERM, true, sensorReaction[REMERGE] > 1.0, 0.25);
     if (P(0.2))
     {
         int links = Math.Min(linkedCells.Count + 1, MAX_LINKS);

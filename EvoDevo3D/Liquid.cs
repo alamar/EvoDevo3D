@@ -26,7 +26,7 @@ namespace EvoDevo4
                 Array.Add(new SignallingProtein(0.8, Color.Bisque));
                 Array.Add(new SignallingProtein(0.8, Color.BurlyWood));
                 Array.Add(new SignallingProtein(0.8, Color.Chartreuse));
-                Array.Add(new SignallingProtein(0.5, Color.Coral));
+                Array.Add(new SignallingProtein(0.999, Color.Coral));
                 Array.Add(new SignallingProtein(0.5, Color.CornflowerBlue));
                 Array.Add(new SignallingProtein(0.5, Color.Crimson));
                 Array.Add(new SignallingProtein(1, Color.DarkGoldenrod));
