@@ -648,14 +648,7 @@ namespace EvoDevo4
         /// <returns>Movement direction</returns>
         public Vector Move()
         {
-            if (!IsMoving)  // If I'm not moving already
-            {
-                activeMovingDirection = polarization.Clone();
-                IsMoving = true;
-                desiredDistance = this.radius;
-                return activeMovingDirection;
-            }
-            return null;
+            return Move(polarization.Clone(), this.radius, false);
         }
 
         /// <summary>
@@ -665,30 +658,11 @@ namespace EvoDevo4
         /// <param name="Polarized">True if cell shoul move in the polarization direction;</param>
         /// <param name="distance">Desired distance;</param>
         /// <returns>Movement direction</returns>
-        public Vector Move(bool Force, bool Polarized, double distance)
+        public Vector Move(bool force, bool polarized, double distance)
         {
-            if ((!IsMoving) || (Force))  // If I'm not moving already or am forced to
-            {
-                if (Polarized)
-                {
-                    if (polarization.Length > Simulation.ALMOST_ZERO)
-                    {
-                        activeMovingDirection = polarization.Clone();
-                    }
-                    else
-                    {
-                        activeMovingDirection = Vector.CreateRandom();
-                    }
-                }
-                else
-                {
-                    activeMovingDirection = Vector.CreateRandom();
-                }
-                IsMoving = true;
-                desiredDistance = distance;
-                return activeMovingDirection;
-            }
-            return null;
+            return Move((polarized && polarization.Length > Simulation.ALMOST_ZERO)
+                        ? polarization.Clone() : Vector.CreateRandom(),
+                    distance, force);
         }
 
         /// <summary>
@@ -699,52 +673,34 @@ namespace EvoDevo4
         /// <param name="AlongGradient">True if cell should along the gradient, false if otherwize</param>
         /// <param name="distance">Desired distance;</param>
         /// <returns>Movement direction</returns>
-        public Vector MoveGradient(int proteinID, bool Force, bool AlongGradient, double distance)
+        public Vector MoveGradient(int proteinID, bool force, bool alongGradient, double distance)
         {
-            if ((!IsMoving) || (Force))  // If I'm not moving already or am forced to
+            Vector direction = simulation.GetGradient(this.position, proteinID).Normalize();
+            if (gradient.Length < Simulation.ALMOST_ZERO)
             {
-                Vector gradient = simulation.GetGradient(this.position, proteinID);
-                if (AlongGradient)
-                {
-                    if (gradient.Length > Simulation.ALMOST_ZERO)
-                    {
-                        activeMovingDirection = gradient;
-                    }
-                    else
-                    {
-                        activeMovingDirection = Vector.CreateRandom();
-                    }
-                }
-                else
-                {
-                    if (gradient.Length > Simulation.ALMOST_ZERO)
-                    {
-                        activeMovingDirection = gradient;
-                        activeMovingDirection.Invert();
-                    }
-                    else
-                    {
-                        activeMovingDirection = Vector.CreateRandom();
-                    }
-                }
+                direction = Vector.CreateRandom();
+            }
+            if (!alongGradient)
+            {
+                direction.Invert();
+            }
+
+            return Move(direction, distance, force);
+        }
+
+        public Vector Move(Vector direction, double distance, bool force)
+        {
+            if (!IsMoving || force)
+            {
+                activeMovingDirection =
+                    (activeMovingDirection * desiredDistance + direction.Normalize() * distance)
+                    .Normalize();
+
                 IsMoving = true;
                 desiredDistance = distance;
                 return activeMovingDirection;
             }
             return null;
-        }
-
-        public bool Move(Vector direction, double distance, bool force)
-        {
-            if (!IsMoving || force)
-            {
-                activeMovingDirection = direction.Normalize();
-
-                IsMoving = true;
-                desiredDistance = distance;
-                return true;
-            }
-            return false;
         }
 
         #endregion
