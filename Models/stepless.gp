@@ -9,6 +9,9 @@ int CONTROLD = 5;
 
 int REMERGE = 6;
 
+ProteinPenetration(ECTODERM, 0.99);
+ProteinPenetration(REMERGE, 0.999);
+
 double MAX_LINK_LENGTH = 5.0;
 int MAX_LINKS = 10;
 

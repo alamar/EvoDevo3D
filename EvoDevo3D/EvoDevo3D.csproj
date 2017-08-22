@@ -22,7 +22,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <ConsolePause>false</ConsolePause>
-    <Commandlineparameters>/home/ilyak/w/EvoDevo3D/Models/gastrula.gp</Commandlineparameters>
+    <Commandlineparameters>/home/ilyak/w/EvoDevo3D/Models/stepless.gp</Commandlineparameters>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>full</DebugType>
@@ -63,7 +63,6 @@
     <Compile Include="Primitives\SpherePrimitive.cs" />
     <Compile Include="Primitives\VertexPositionNormal.cs" />
     <Compile Include="Support\Extend.cs" />
-    <Compile Include="Liquid.cs" />
     <Compile Include="Source.cs" />
     <Compile Include="Vector.cs" />
     <Compile Include="Cell.cs" />

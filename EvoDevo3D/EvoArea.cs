@@ -29,6 +29,7 @@ namespace EvoDevo4
         private SpherePrimitive sphere;
         private SpherePrimitive[] concentrationSpheres;
         private Color[] cellMaterial;
+        private Color[] proteinTint;
         int cellSelectionIndex;
         public bool screenshotAwaiting = false;
         public bool rendering = false;
@@ -255,6 +256,17 @@ namespace EvoDevo4
             cellMaterial[7] = Color.LemonChiffon;
             cellMaterial[8] = Color.BurlyWood;
             cellMaterial[9] = Color.Gainsboro;
+            proteinTint = new Color[10];
+            proteinTint[0] = Color.Blue;
+            proteinTint[1] = Color.Green;
+            proteinTint[2] = Color.Firebrick;
+            proteinTint[3] = Color.Bisque;
+            proteinTint[4] = Color.BurlyWood;
+            proteinTint[5] = Color.Chartreuse;
+            proteinTint[6] = Color.Coral;
+            proteinTint[7] = Color.CornflowerBlue;
+            proteinTint[8] = Color.Crimson;
+            proteinTint[9] = Color.DarkGoldenrod;
             visibility = Enumerable.Repeat(true, 10).ToArray();
         }
 
@@ -327,7 +339,7 @@ namespace EvoDevo4
                                     (float)source.position.y, (float)source.position.z);
 
                 effect.World = location;
-                effect.DiffuseColor = source.color.ToVector3() * (0.05f * (float) source.strength);
+                effect.DiffuseColor = proteinTint[source.secretID % 10].ToVector3() * (0.05f * (float) source.strength);
                 effect.LightingEnabled = false;
                 foreach (SpherePrimitive concentrationSphere in concentrationSpheres) 
                 {

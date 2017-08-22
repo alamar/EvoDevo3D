@@ -15,18 +15,7 @@ namespace EvoDevo4
         }
         public double strength;
         public int secretID;
-        public Color color
-        {
-            get
-            {
-                if (secretID >= 0 && secretID < SignallingProtein.Array.Count)
-                {
-                    return SignallingProtein.Array[secretID].color;
-                }
-                throw new Exception("Located a source of unknown protein!");
-                //return Color.Black;
-            }
-        }
+
         public bool OriginatesFrom(Cell cell)
         {
             return (CELL == cell);

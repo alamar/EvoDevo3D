@@ -50,16 +50,16 @@ namespace EvoDevo4
         }
         public Vector polarization;
         public int cellType;
-        public bool[] secrettingNow = new bool[SignallingProtein.Array.Count];
-        public double[] secretLevel = new double[SignallingProtein.Array.Count];
+        public bool[] secrettingNow;
+        public double[] secretLevel;
         public bool holdingPosition = false;
-        public double[] sensitivity = new double[SignallingProtein.Array.Count];
+        public double[] sensitivity;
         public Vector[] gradient
         {
             get
             {
-                Vector[] retval = new Vector[SignallingProtein.Array.Count];
-                for (int i = 0; i < SignallingProtein.Array.Count; i++)
+                Vector[] retval = new Vector[secrettingNow.Length];
+                for (int i = 0; i < secrettingNow.Length; i++)
                 {
                     retval[i] = simulation.GetGradient(position, i);
                 }
@@ -74,8 +74,8 @@ namespace EvoDevo4
                 if (_sensorReaction != null)
                     return _sensorReaction;
 
-                _sensorReaction = new double[SignallingProtein.Array.Count];
-                for (int i = 0; i < SignallingProtein.Array.Count; i++)
+                _sensorReaction = new double[secrettingNow.Length];
+                for (int i = 0; i < secrettingNow.Length; i++)
                 {
                     _sensorReaction[i] = simulation.GetConcentration(position, i) * sensitivity[i];
                 }
@@ -145,7 +145,7 @@ namespace EvoDevo4
             string sensReact = "      sensor reaction       (";
             string secretNow = "      secreting now         (";
             string secrAm = "      secret amount         (";
-            for (int i = 0; i < SignallingProtein.Array.Count; i++)
+            for (int i = 0; i < secrettingNow.Length; i++)
             {
                 if (i!=0)
                 {
@@ -265,29 +265,7 @@ namespace EvoDevo4
         }
 
 
-        public Cell(Simulation simulation)
-        {
-            this.simulation = simulation;
-            position = new Vector();
-            radius = 1;
-            resilience = 0.8;
-            passiveMovingDirection = new Vector();
-            activeMovingDirection = new Vector();
-            desiredDistance = 0;
-            IsMoving = false;
-            movingSpeed = 0.2;
-            cellType = 0;
-            polarization = Vector.CreateRandom();
-            for (int i = 0; i < SignallingProtein.Array.Count; i++)
-            {
-                secrettingNow[i] = false;
-                secretLevel[i] = 0.5;
-                sensitivity[i] = 1;
-            }
-            parent = null;
-            offspring = new List<Cell>();
-            lastOffspring = null;
-        }
+        public Cell(Simulation simulation) : this(simulation, new Vector(), 1, 0.8) { }
 
         public Cell(Simulation simulation, Vector position, double radius, double resilience)
         {
@@ -296,13 +274,16 @@ namespace EvoDevo4
             this.radius = radius;
             this.resilience = resilience;
             this.passiveMovingDirection = new Vector();
-            activeMovingDirection = new Vector();
-            desiredDistance = 0;
-            IsMoving = false;
-            movingSpeed = 0.2;
-            cellType = 0;
-            polarization = Vector.CreateRandom();
-            for (int i = 0; i < SignallingProtein.Array.Count; i++)
+            this.activeMovingDirection = new Vector();
+            this.desiredDistance = 0;
+            this.IsMoving = false;
+            this.movingSpeed = 0.2;
+            this.cellType = 0;
+            this.polarization = Vector.CreateRandom();
+            this.secrettingNow = new bool[simulation.proteinPenetrations.Length];
+            this.secretLevel = new double[simulation.proteinPenetrations.Length];
+            this.sensitivity = new double[simulation.proteinPenetrations.Length];
+            for (int i = 0; i < simulation.proteinPenetrations.Length; i++)
             {
                 secrettingNow[i] = false;
                 secretLevel[i] = 0.5;
@@ -326,7 +307,10 @@ namespace EvoDevo4
             this.age = ancestor.age;
             this.numDivisions = ancestor.numDivisions;
             this.state = ancestor.state;
-            for (int i = 0; i < SignallingProtein.Array.Count; i++)
+            this.secrettingNow = new bool[simulation.proteinPenetrations.Length];
+            this.secretLevel = new double[simulation.proteinPenetrations.Length];
+            this.sensitivity = new double[simulation.proteinPenetrations.Length];
+            for (int i = 0; i < simulation.proteinPenetrations.Length; i++)
             {
                 secrettingNow[i] = false;
                 secretLevel[i] = ancestor.secretLevel[i];
@@ -457,6 +441,10 @@ namespace EvoDevo4
                 return true;
             }
             return false;
+        }
+
+        public void ProteinPenetration(int signalID, double level) {
+            simulation.proteinPenetrations[signalID] = level;
         }
 
         /// <summary>

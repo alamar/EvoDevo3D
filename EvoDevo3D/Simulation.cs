@@ -34,6 +34,9 @@ namespace EvoDevo4
 
         public List<Cell> Cells = new List<Cell>();
         public List<Source> Sources = new List<Source>();
+        public double[] proteinPenetrations = new double[] {
+            0.9, 0.9, 0.9, 0.8, 0.8, 0.8, 0.5, 0.5, 0.5, 1,
+            0.9, 0.9, 0.9, 0.8, 0.8, 0.8, 0.5, 0.5, 0.5, 1 };
         public bool ConcentrationsChanged = false;
 
         /// <summary>
@@ -44,12 +47,14 @@ namespace EvoDevo4
         /// <returns>Concentration</returns>
         public double GetConcentration(Vector location, int secretID)
         {
-            double retval=0;
+            double retval = 0;
             foreach (Source sc in Sources)
             {
                 if (sc.secretID == secretID)
                 {
-                    retval+=sc.strength*(Math.Pow(SignallingProtein.Array[secretID].pentration,Vector.Distance(sc.position,location)));
+                    retval += sc.strength *
+                        Math.Pow(proteinPenetrations[secretID],
+                            Vector.Distance(sc.position, location));
                 }
             }
             return retval;
@@ -69,7 +74,7 @@ namespace EvoDevo4
             {
                 if (sc.secretID == secretID)
                 {
-                    curConc = sc.strength * (Math.Pow(SignallingProtein.Array[secretID].pentration, Vector.Distance(sc.position, location)));
+                    curConc = sc.strength * (Math.Pow(proteinPenetrations[secretID], Vector.Distance(sc.position, location)));
                     retval += (sc.position - location).Normalize() * curConc;
                 }
             }
@@ -88,7 +93,7 @@ namespace EvoDevo4
             }
         }
 
-        public Color GetColor(Vector location)
+        /*public Color GetColor(Vector location)
         {
             byte r = 255;
             byte g = 255;
@@ -117,7 +122,7 @@ namespace EvoDevo4
 
             retval = new Color(r, g, b);
             return (retval);
-        }
+        }*/
 
         /// <summary>
         /// Returns the list of cells touching or hidden within the given cell
@@ -225,7 +230,7 @@ namespace EvoDevo4
         {
             lock (Cells)
             {
-                for (int i = 0; i < SignallingProtein.Array.Count; i++)
+                for (int i = 0; i < proteinPenetrations.Length; i++)
                 {
                     if (cell.secrettingNow[i])
                     {
@@ -353,7 +358,7 @@ namespace EvoDevo4
             cell.position += where;
             if (!ConcentrationsChanged)
             {
-                for (int i = 0; i < SignallingProtein.Array.Count; i++)
+                for (int i = 0; i < proteinPenetrations.Length; i++)
                 {
                     if (cell.secrettingNow[i])
                     {
@@ -369,7 +374,7 @@ namespace EvoDevo4
                     swarmer.position += where;
                     if (!ConcentrationsChanged)
                     {
-                        for (int i = 0; i < SignallingProtein.Array.Count; i++)
+                        for (int i = 0; i < proteinPenetrations.Length; i++)
                         {
                             if (swarmer.secrettingNow[i])
                             {
