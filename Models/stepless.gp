@@ -63,7 +63,7 @@ if (cellType == ECTODERM)
         return;
     }
     DeSpillAll();
-    Spill(nearCells < 10 ? REMERGE : ECTODERM);
+    Spill(nearCells < 5 ? REMERGE : ECTODERM);
     MoveGradient(ECTODERM, true, sensorReaction[REMERGE] > 1.0, 0.25);
     if (P(0.2))
     {
