@@ -12,13 +12,14 @@ int REMERGE = 6;
 ProteinPenetration(ECTODERM, 0.99);
 ProteinPenetration(REMERGE, 0.999);
 
+movingSpeed = 0.1 + 0.2 * rnd;
+
 double MAX_LINK_LENGTH = 5.0;
 int MAX_LINKS = 10;
 
-if (step == 150) {
+if (step == 80) {
     BreakFree();
-    this.position = new Vector(rnd * 100 - 50, rnd * 100 - 50, rnd * 20 - 10);
-    cellType = ECTODERM;
+    this.position = new Vector(rnd * 100 - 50, rnd * 100 - 50, rnd * 20 - 10);    cellType = ECTODERM;
 }
 
 foreach (Cell cell in linkedCells.Copy())
@@ -55,17 +56,18 @@ if (cellType == STEM)
 
 if (cellType == ECTODERM)
 {
-    if (P(sensorReaction[CONTROLD]))
+    if (P(sensorReaction[CONTROLD]) || (sensorReaction[CONTROLD] < Simulation.ALMOST_ZERO && linkedCells.Count == MAX_LINKS && sensorReaction[ENDODERM] < 0.5 && sensorReaction[REMERGE] < Simulation.ALMOST_ZERO))
     {
         DeSpillAll();
         cellType = ENDODERM;
         Spill(ENDODERM);
         return;
     }
+
     DeSpillAll();
     Spill(nearCells < 5 ? REMERGE : ECTODERM);
-    MoveGradient(ECTODERM, true, sensorReaction[REMERGE] > 1.0, 0.25);
-    if (P(0.2))
+    MoveGradient(ECTODERM, true, nearCells < 5 || sensorReaction[REMERGE] > 4.0, 0.25);
+    if (P(0.2) && sensorReaction[REMERGE] < Simulation.ALMOST_ZERO)
     {
         int links = Math.Min(linkedCells.Count + 1, MAX_LINKS);
         BreakFree();
@@ -127,11 +129,6 @@ if (step == 0) {
 }
 
 
-
-
-
-
-
 /*int mixedLinksCount = 0;
 bool linkedControl = (cellType == CONTROL);
 foreach (Cell cell in linkedCells.Copy()) {
@@ -145,100 +142,3 @@ foreach (Cell cell in linkedCells.Copy()) {
     }
 }
 bool mixedLinks = mixedLinksCount > 2;*/
-
-
-/*
-Interject(45, () => this.position = new Vector(rnd * 100 - 50, rnd * 100 - 50, rnd * 20 - 10));
-
-Stage(MORULA_AGE, () => SpawnWherever());
-
-Stage(BLASTULA_AGE, () =>
-{
-    if (EnvironmentalAccess > 0.2 && sensorReaction[4] == 0) {
-        Spill(CONTROL);
-        cellType = CONTROL;
-    }
-    Spill(ECTODERM);
-});
-
-Stage(1, () => {
-if (cellType == 0)
-{
-    if (state == "immigration" ? (rnd < 0.45) : (sensorReaction[CONTROL] > 0.01))
-    {
-        cellType = ENDODERM;
-        DeSpillAll();
-        Spill(ENDODERM);
-    }
-    else
-    {
-        cellType = ECTODERM;
-    }
-    return;
-}
-});
-
-Stage(GASTRULA_AGE, () =>
-{
-    switch (cellType)
-    {
-        case 1:
-            MoveGradient(ECTODERM, true, true, -0.2);
-            break;
-        case 2:
-            Vector outside = Vector.Invert(simulation.GetGradient(position, ECTODERM)).Normalize(1.0);
-            bool coveredByEctoderm = false;
-            foreach (Cell cell in surroundingCells)
-            {
-                Vector difference = (cell.position - position).Normalize(1.0) - outside;
-                if (cell.cellType == ECTODERM && difference.Length < 1.0)
-                {
-                     coveredByEctoderm = true;
-                     break;
-                }
-            }
-            if (!coveredByEctoderm)
-            {
-                MoveGradient(ECTODERM, true, true, 1.0);
-            }
-            break;
-    }
-});
-
-Stage(1, () => {
-    if (state == "immigration" && !linkedControl)
-    {
-        int links = 0;
-        BreakFree();
-        foreach (Cell cell in surroundingCells)
-        {
-            if (cell.cellType == cellType) 
-            {
-                LinkTo(cell);
-                if (links++ == 10)
-                {
-                    break;
-                }
-            }
-        }
-    }
-});
-
-Stage(1, () => {
-    if (mixedLinks && cellType == ECTODERM)
-    {
-        DeSpillAll();
-        Spill(MOUTH);
-        cellType = MOUTH;
-    }
-});
-
-Stage(10000, () => {
-    if (cellType == MOUTH)
-    {
-        MoveToTheCrowd(true, 0.5);
-    } else {
-        MoveGradient(cellType, true, true, -0.1);
-    }
-});
-*/
