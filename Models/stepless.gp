@@ -1,3 +1,6 @@
+bool CONTROL_CELL = false, SMASH = false;
+
+
 int STEM = 0;
 int ECTODERM = 1;
 int ENDODERM = 2;
@@ -17,16 +20,22 @@ movingSpeed = 0.1 + 0.2 * rnd;
 double MAX_LINK_LENGTH = 5.0;
 int MAX_LINKS = 10;
 
-if (step == 80) {
+if (SMASH && step == 80) {
     BreakFree();
     this.position = new Vector(rnd * 100 - 50, rnd * 100 - 50, rnd * 20 - 10);    cellType = ECTODERM;
 }
 
+int linkedEndoderm = 0;
 foreach (Cell cell in linkedCells.Copy())
 {
-    if ((position - cell.position).mod > MAX_LINK_LENGTH)
+    if ((position - cell.position).mod > MAX_LINK_LENGTH ||
+        (P(0.1) && cell.cellType != cellType))
     {
         UnlinkFrom(cell);
+    }
+    else if (cell.cellType == ENDODERM)
+    {
+        linkedEndoderm++;
     }
 }
 
@@ -56,7 +65,10 @@ if (cellType == STEM)
 
 if (cellType == ECTODERM)
 {
-    if (P(sensorReaction[CONTROLD]) || (sensorReaction[CONTROLD] < Simulation.ALMOST_ZERO && linkedCells.Count == MAX_LINKS && sensorReaction[ENDODERM] < 0.5 && sensorReaction[REMERGE] < Simulation.ALMOST_ZERO))
+    /*if (P(sensorReaction[CONTROLD]) || */
+    bool spontaneousDifferentiation = P(0.01) && sensorReaction[CONTROLD] < Simulation.ALMOST_ZERO && linkedCells.Count == MAX_LINKS && sensorReaction[ENDODERM] < 0.1 && sensorReaction[REMERGE] < 4.0;
+    bool guidedDifferentiation = (sensorReaction[ENDODERM] > 0.1) && (linkedEndoderm * 2 < linkedCells.Count) && (sensorReaction[ENDODERM] < 20);
+    if (spontaneousDifferentiation || guidedDifferentiation)
     {
         DeSpillAll();
         cellType = ENDODERM;
@@ -67,23 +79,6 @@ if (cellType == ECTODERM)
     DeSpillAll();
     Spill(nearCells < 5 ? REMERGE : ECTODERM);
     MoveGradient(ECTODERM, true, nearCells < 5 || sensorReaction[REMERGE] > 4.0, 0.25);
-    if (P(0.2) && sensorReaction[REMERGE] < Simulation.ALMOST_ZERO)
-    {
-        int links = Math.Min(linkedCells.Count + 1, MAX_LINKS);
-        BreakFree();
-        foreach (Cell cell in surroundingCells)
-        {
-            if ((position - cell.position).mod > MAX_LINK_LENGTH)
-            {
-                continue;
-            }
-            LinkTo(cell);
-            if (--links <= 0)
-            {
-                break;
-            }
-        }
-    }
 }
 
 if (cellType == ENDODERM) {
@@ -100,15 +95,34 @@ if (cellType == ENDODERM) {
     }
     if (!coveredByEctoderm)
     {
-        MoveGradient(ECTODERM, true, true, 0.8);
+        MoveGradient(ECTODERM, true, true, 0.1);
     }
 }
+
+
+    if ((P(0.1) || cellType == ENDODERM) && sensorReaction[REMERGE] < 4.0)
+    {
+        int links = Math.Min(linkedCells.Count + 1, MAX_LINKS);
+        BreakFree();
+        foreach (Cell cell in surroundingCells)
+        {
+            if ((position - cell.position).mod > MAX_LINK_LENGTH || cell.cellType != cellType)
+            {
+                continue;
+            }
+            LinkTo(cell);
+            if (--links <= 0)
+            {
+                break;
+            }
+        }
+    }
 
 if (cellType == CONTROL && EnvironmentalAccess < 0.15) {
     MoveFromTheCrowd(false, 0.15);
 }
 
-if (cellType == CONTROL && sensorReaction[STEM] > 100) {
+if (sensorReaction[STEM] > 120) {
     Spill(CONTROLG);
 }
 
@@ -123,7 +137,7 @@ if (cellType == STEM && P(0.1)) {
     Spill(STEM);
 }
 
-if (step == 0) {
+if (CONTROL_CELL && step == 0) {
     SpawnWherever();
     cellType = CONTROL;
 }
