@@ -1,4 +1,4 @@
-bool CONTROL_CELL = false, SMASH = true;
+bool CONTROL_CELL = false, SMASH = false;
 double MAX_LINK_LENGTH = 5.0;
 int MAX_LINKS = 10;
 
@@ -21,7 +21,8 @@ movingSpeed = 0.1 + 0.2 * rnd;
 
 radius = 1.5;
 
-if (SMASH && step == 80) {
+if (SMASH && step == 80)
+{
     BreakFree();
     this.position = new Vector(rnd * 100 - 50, rnd * 100 - 50, rnd * 20 - 10);
     cellType = ECTODERM;
@@ -68,27 +69,42 @@ if (cellType == ECTODERM)
     MoveGradient(ECTODERM, true, remerge || sensorReaction[REMERGE] > 4.0, 0.25);
 }
 
-if (cellType == ENDODERM) {
+if (cellType == ENDODERM)
+{
     Vector outside = Vector.Invert(simulation.GetGradient(position, ECTODERM)).Normalize(1.0);
     bool coveredByEctoderm = false;
+    Vector closest = null;
     foreach (Cell cell in surroundingCells)
     {
         Vector difference = (cell.position - position).Normalize(1.0) - outside;
-        if (cell.cellType == ECTODERM && difference.Length < 1.0)
+        if (cell.cellType == ECTODERM)
         {
-            coveredByEctoderm = true;
-            break;
+            if (difference.Length < 1.0)
+            {
+                coveredByEctoderm = true;
+                break;
+            }
+            else if (difference.Length < 2.0)
+            {
+                closest = difference;
+            }
         }
     }
     if (!coveredByEctoderm)
     {
-        MoveGradient(ECTODERM, true, true, 0.1);
+        if (closest != null)
+        {
+            Move(closest, 0.2, true);
+        } else {
+            MoveGradient(ECTODERM, true, true, 0.05);
+        }
     }
     Spill(ENDODERM);
 }
 
 
-if ((P(0.1) || cellType == ENDODERM) && sensorReaction[REMERGE] < 4.0)
+if (sensorReaction[REMERGE] < 4.0 &&
+    (P(0.1) && cellType == ECTODERM || P(1) && cellType == ENDODERM))
 {
     int links = Math.Min(linkedCells.Count + 1, MAX_LINKS);
     BreakFree();
