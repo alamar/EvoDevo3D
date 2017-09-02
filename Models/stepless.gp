@@ -40,10 +40,18 @@ foreach (Cell cell in surroundingCells)
 if (cellType == ECTODERM)
 {
     /*if (P(sensorReaction[CONTROLD]) || */
-    bool spontaneousDifferentiation = P(0.01) && sensorReaction[CONTROLD] < Simulation.ALMOST_ZERO && linkedCells.Count == MAX_LINKS && sensorReaction[ENDODERM] < 0.1 && sensorReaction[REMERGE] < 4.0;
-    bool guidedDifferentiation = sensorReaction[CONTROLD] > 0.03 ||
-((sensorReaction[CONTROLD] < Simulation.ALMOST_ZERO) && (sensorReaction[ENDODERM] > 0.1) && P(0.2) && (sensorReaction[ENDODERM] < 20));
-    if (spontaneousDifferentiation || guidedDifferentiation)
+    if (P(0.01) && sensorReaction[CONTROLD] < Simulation.ALMOST_ZERO &&
+        linkedCells.Count == MAX_LINKS && sensorReaction[ENDODERM] < 0.1 &&
+        sensorReaction[REMERGE] < 4.0)
+    {
+        cellType = MOUTH;
+        Spill(MOUTH);
+        return;
+    }
+
+    if (sensorReaction[CONTROLD] > 0.03 ||
+        (P(0.2) && (sensorReaction[CONTROLD] < Simulation.ALMOST_ZERO) &&             (sensorReaction[MOUTH] > 0.1 || sensorReaction[ENDODERM] > 0.1) &&
+            (sensorReaction[ENDODERM] < 20)))
     {
         cellType = ENDODERM;
         Spill(ENDODERM);
@@ -104,7 +112,16 @@ if (sensorReaction[REMERGE] < 4.0 &&
     }
 }
 
+if (cellType == MOUTH) {
+    Spill(MOUTH);
+}
+
 if (cellType == CONTROL) {
+    if (sensorReaction[MOUTH] > Simulation.ALMOST_ZERO) {
+        cellType = ECTODERM;
+        return;
+    }
+
     if (EnvironmentalAccess < 0.15)
         MoveFromTheCrowd(false, 0.15);
 
