@@ -301,10 +301,11 @@ namespace EvoDevo4
                     cameraPosition = Vector3.Transform(cameraPosition - cameraLooksAt,
                             Matrix.CreateFromAxisAngle(upVector, -0.01f)) + cameraLooksAt;
                 }
-                    PlaceCamera();
-                    DrawCells();
-                    DrawConcentrations();
-                    this.Window.Title = "Age: " + simulation.Cells[0].age + " Cells: " + simulation.Cells.Count;
+
+                PlaceCamera();
+                int visibleCells = DrawCells();
+                DrawConcentrations();
+                this.Window.Title = "Age: " + simulation.Cells[0].age + " Cells: " + visibleCells;
             }
             catch (Exception e)
             {
@@ -365,8 +366,9 @@ namespace EvoDevo4
             return 0;
         }
 
-        private void DrawCells()
+        private int DrawCells()
         {
+            int visibleCells = 0;
             //bool[] visibility = session.Controls.visibility();
             foreach (Cell currenttarget in simulation.Cells.Copy())
             {
@@ -377,6 +379,7 @@ namespace EvoDevo4
                    continue;
                 }
 
+                visibleCells++;
                 Matrix location = Matrix.CreateScale((float)currenttarget.radius,
                             (float)currenttarget.radius, (float)currenttarget.radius)
                         * Matrix.CreateTranslation((float)currenttarget.position.x,
@@ -395,6 +398,7 @@ namespace EvoDevo4
                 effect.DiffuseColor = currentMaterial.ToVector3();
                 sphere.Draw(effect);
             }
+            return visibleCells;
         }
     }
 }
