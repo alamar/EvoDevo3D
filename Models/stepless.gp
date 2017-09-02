@@ -49,9 +49,10 @@ if (cellType == ECTODERM)
         return;
     }
 
-    if (sensorReaction[CONTROLD] > 0.03 ||
-        (P(0.2) && (sensorReaction[CONTROLD] < Simulation.ALMOST_ZERO) &&             (sensorReaction[MOUTH] > 0.1 || sensorReaction[ENDODERM] > 0.1) &&
-            (sensorReaction[ENDODERM] < 20)))
+    if (sensorReaction[CONTROLD] > 0.02 ||
+        (P(0.2) && (sensorReaction[CONTROLD] < Simulation.ALMOST_ZERO) &&
+            (sensorReaction[MOUTH] > 0.1 || sensorReaction[ENDODERM] > 0.1) &&
+            (sensorReaction[ENDODERM] < 10)))
     {
         cellType = ENDODERM;
         Spill(ENDODERM);
@@ -114,6 +115,27 @@ if (sensorReaction[REMERGE] < 4.0 &&
 
 if (cellType == MOUTH) {
     Spill(MOUTH);
+}
+
+if (sensorReaction[MOUTH] > Simulation.ALMOST_ZERO) {
+    bool linkedEcto = false, linkedEndo = false, linkedMouth = false;
+
+    foreach (Cell cell in linkedCells) {
+        if (cell.cellType == ECTODERM)
+            linkedEcto = true;
+        if (cell.cellType == ENDODERM)
+            linkedEndo = true;
+        if (cell.cellType == MOUTH)
+            linkedMouth = true;
+    }
+
+    if (!linkedMouth && linkedEcto && linkedEndo) {
+        foreach (Cell cell in linkedCells.Copy()) {
+            if (cell.cellType != cellType && P(0.1)) {
+                UnlinkFrom(cell);
+            }
+        }
+    }
 }
 
 if (cellType == CONTROL) {
