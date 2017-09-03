@@ -14,6 +14,7 @@ int CONTROLD = 5;
 int REMERGE = 6;
 
 ProteinPenetration(ECTODERM, 0.99);
+//ProteinPenetration(MOUTH, 0.99);
 ProteinPenetration(REMERGE, 0.999);
 
 movingSpeed = 0.1 + 0.2 * rnd;
@@ -29,7 +30,7 @@ if (cellType == PREMOUTH)
 if (SMASH && step == 80)
 {
     BreakFree();
-    this.position = new Vector(rnd * 100 - 50, rnd * 100 - 50, rnd * 20 - 10);
+    this.position = this.position + new Vector(rnd * 100 - 50, rnd * 100 - 50, rnd * 20 - 10);
     cellType = ECTODERM;
 }
 
@@ -53,7 +54,7 @@ if (cellType == ECTODERM)
         return;
     }
 
-    if (sensorReaction[CONTROLD] > 0.02 ||
+    if (sensorReaction[CONTROLD] > 0.025 ||
         (P(0.2) && (sensorReaction[CONTROLD] < Simulation.ALMOST_ZERO) &&
             (sensorReaction[MOUTH] > 0.1 || sensorReaction[ENDODERM] > 0.1) &&
             (sensorReaction[ENDODERM] < 13)))
@@ -115,6 +116,8 @@ if (sensorReaction[REMERGE] < 4.0 && P(1.0 / (2.0 * (1.0 + linkedCells.Count))) 
 
 if (cellType == MOUTH) {
     Spill(MOUTH);
+
+    //MoveGradient(MOUTH, true, true, 0.3);
 }
 
 if ((sensorReaction[MOUTH] > Simulation.ALMOST_ZERO || sensorReaction[CONTROLD] > Simulation.ALMOST_ZERO) && cellType != MOUTH) {
@@ -146,15 +149,15 @@ if ((sensorReaction[MOUTH] > Simulation.ALMOST_ZERO || sensorReaction[CONTROLD] 
 }
 
 if (cellType == CONTROL) {
-    if (sensorReaction[MOUTH] > Simulation.ALMOST_ZERO) {
-        cellType = ECTODERM;
+    /*if (sensorReaction[MOUTH] > Simulation.ALMOST_ZERO) {
+        cellType = ENDODERM;
         return;
-    }
+    }*/
 
     if (EnvironmentalAccess < 0.15)
         MoveFromTheCrowd(false, 0.15);
 
-    if (linkedCells.Count == 4 && sensorReaction[ENDODERM] < Simulation.ALMOST_ZERO)
+    if (linkedCells.Count == 5 && sensorReaction[ENDODERM] < Simulation.ALMOST_ZERO)
         Spill(CONTROLD);
 }
 
