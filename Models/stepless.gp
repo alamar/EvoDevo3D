@@ -8,9 +8,6 @@ int ENDODERM = 2;
 int MOUTH = 3;
 int PREMOUTH = 33;
 int CONTROL = 4;
-
-int CONTROLD = 5;
-
 int REMERGE = 6;
 
 ProteinPenetration(ECTODERM, 0.99);
@@ -44,8 +41,7 @@ foreach (Cell cell in surroundingCells)
 
 if (cellType == ECTODERM)
 {
-    /*if (P(sensorReaction[CONTROLD]) || */
-    if (P(0.01) && sensorReaction[CONTROLD] < Simulation.ALMOST_ZERO &&
+    if (P(0.01) && sensorReaction[CONTROL] < Simulation.ALMOST_ZERO &&
         linkedCells.Count == MAX_LINKS && sensorReaction[ENDODERM] < 0.1 &&
         sensorReaction[REMERGE] < 4.0)
     {
@@ -54,8 +50,8 @@ if (cellType == ECTODERM)
         return;
     }
 
-    if (sensorReaction[CONTROLD] > 0.025 ||
-        (P(0.2) && (sensorReaction[CONTROLD] < Simulation.ALMOST_ZERO) &&
+    if (sensorReaction[CONTROL] > 0.025 ||
+        (P(0.2) && (sensorReaction[CONTROL] < Simulation.ALMOST_ZERO) &&
             (sensorReaction[MOUTH] > 0.1 || sensorReaction[ENDODERM] > 0.1) &&
             (sensorReaction[ENDODERM] < 13)))
     {
@@ -70,7 +66,7 @@ if (cellType == ECTODERM)
 }
 
 if (cellType == ENDODERM)
-{
+	{
     Vector outside = Vector.Invert(simulation.GetGradient(position, ECTODERM)).Normalize(1.0);
     bool coveredByEctoderm = false;
     Vector closest = null;
@@ -105,7 +101,7 @@ if (sensorReaction[REMERGE] < 4.0 && P(1.0 / (2.0 * (1.0 + linkedCells.Count))) 
 {
     foreach (Cell cell in surroundingCells)
     {
-        if (!linkedCells.Contains(cell) && (cellType == cell.cellType || cellType == CONTROL))
+        if (!linkedCells.Contains(cell) && (cellType == cell.cellType || cellType == CONTROL || cell.cellType == CONTROL))
         {
             LinkTo(cell);
 
@@ -120,7 +116,7 @@ if (cellType == MOUTH) {
     //MoveGradient(MOUTH, true, true, 0.3);
 }
 
-if ((sensorReaction[MOUTH] > Simulation.ALMOST_ZERO || sensorReaction[CONTROLD] > Simulation.ALMOST_ZERO) && cellType != MOUTH) {
+if ((sensorReaction[MOUTH] > Simulation.ALMOST_ZERO || sensorReaction[CONTROL] > Simulation.ALMOST_ZERO) && cellType != MOUTH) {
     bool linkedEcto = false, linkedEndo = false, linkedMouth = false;
 
     foreach (Cell cell in linkedCells) {
@@ -133,7 +129,7 @@ if ((sensorReaction[MOUTH] > Simulation.ALMOST_ZERO || sensorReaction[CONTROLD] 
     }
 
     if (linkedEcto && linkedEndo) {
-        if ((linkedMouth || sensorReaction[CONTROLD] > Simulation.ALMOST_ZERO)
+        if ((linkedMouth || sensorReaction[CONTROL] > Simulation.ALMOST_ZERO)
             && linkedEcto && linkedEndo)
         {
             cellType = PREMOUTH;
@@ -149,16 +145,11 @@ if ((sensorReaction[MOUTH] > Simulation.ALMOST_ZERO || sensorReaction[CONTROLD] 
 }
 
 if (cellType == CONTROL) {
-    /*if (sensorReaction[MOUTH] > Simulation.ALMOST_ZERO) {
-        cellType = ENDODERM;
-        return;
-    }*/
-
     if (EnvironmentalAccess < 0.15)
         MoveFromTheCrowd(false, 0.15);
 
-    if (linkedCells.Count == 5 && sensorReaction[ENDODERM] < Simulation.ALMOST_ZERO)
-        Spill(CONTROLD);
+    if (linkedCells.Count >= 7 && sensorReaction[ENDODERM] < Simulation.ALMOST_ZERO)
+        Spill(CONTROL);
 }
 
 if (cellType == STEM) {
@@ -174,18 +165,3 @@ if (CONTROL_CELL && step == 0) {
     SpawnWherever();
     cellType = CONTROL;
 }
-
-
-/*int mixedLinksCount = 0;
-bool linkedControl = (cellType == CONTROL);
-foreach (Cell cell in linkedCells.Copy()) {
-    if ((position - cell.position).mod > 5) {
-        UnlinkFrom(cell);
-    }
-    linkedControl |= (cell.cellType == CONTROL);
-    if (cell.cellType != cellType)
-    {
-        mixedLinksCount++;
-    }
-}
-bool mixedLinks = mixedLinksCount > 2;*/
