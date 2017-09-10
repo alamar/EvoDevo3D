@@ -33,6 +33,7 @@ namespace EvoDevo3D
         #endif
         static void Main(string[] args)
         {
+            Cell.Program = new FileInfo(args.Length > 1 ? args[1] : args[0]);
             Cell.GeneticCode = File.ReadAllText(args[0]);
             #if MONOMAC
             NSApplication.Init ();

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.CodeDom.Compiler;
@@ -105,6 +106,7 @@ namespace EvoDevo4
             }
         }
 
+        public static FileInfo Program;
         public static string GeneticCode = "";
         public static CompilerResults CompiledGeneticStrategy;
         public const String geneCodeTemplatePiece1 = @"

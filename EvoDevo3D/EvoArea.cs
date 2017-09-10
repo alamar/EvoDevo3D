@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -228,6 +229,10 @@ namespace EvoDevo4
                     simulation.selectionTarget = simulation.Cells[cellSelectionIndex];
                 }
             }
+            if (keyboard.IsKeyDown(Keys.P) || stdin == 'p')
+            {
+                screenshotAwaiting = true;
+            }
             if (keyboard.IsKeyDown(Keys.Escape))
             {
                 simulation.selectionTarget = null;
@@ -305,6 +310,26 @@ namespace EvoDevo4
                 PlaceCamera();
                 int visibleCells = DrawCells();
                 DrawConcentrations();
+
+                if (screenshotAwaiting) {
+                    screenshotAwaiting = false;
+                    Stream stream = new FileStream(
+                        Path.Combine(Cell.Program.Directory.FullName,
+                            String.Format("{0}_{1}_{2:000}.png",
+                                new Regex("\\.[a-zA-Z0-9]+").Replace(Cell.Program.Name, ""),
+                                DateTime.Now.ToString("yy-MM-dd_HH.mm"),
+                                simulation.Cells[0].age)),
+                        FileMode.Create, FileAccess.Write, FileShare.None);
+                    int w = GraphicsDevice.PresentationParameters.BackBufferWidth;
+                    int h = GraphicsDevice.PresentationParameters.BackBufferHeight;
+                    RenderTarget2D screenshot = new RenderTarget2D(GraphicsDevice, w, h);
+                    GraphicsDevice.SetRenderTarget(screenshot);
+                    Draw(gameTime);
+                    GraphicsDevice.Present();
+                    GraphicsDevice.SetRenderTarget(null);
+                    screenshot.SaveAsPng(stream, w, h);
+                    stream.Close();
+                }
                 this.Window.Title = "Age: " + simulation.Cells[0].age + " Cells: " + visibleCells;
             }
             catch (Exception e)

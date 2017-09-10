@@ -133,6 +133,7 @@ namespace EvoDevo4
                 tsbPause.Enabled = false;
                 tsbStep.Enabled = false;
                 tsbClear.Enabled = false;
+                tsbSnapshot.Enabled = false;
                 return false;
             }
             return true;
@@ -200,6 +201,7 @@ namespace EvoDevo4
             // tsbSnapshot
             // 
             this.tsbSnapshot.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.tsbSnapshot.Enabled = false;
             this.tsbSnapshot.Image = global::EvoDevo4.Properties.Resources.snapshot;
             this.tsbSnapshot.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbSnapshot.Name = "tsbSnapshot";
@@ -210,6 +212,7 @@ namespace EvoDevo4
             // tsbVideo
             // 
             this.tsbVideo.CheckOnClick = true;
+            this.tsbVideo.Enabled = false;
             this.tsbVideo.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
             this.tsbVideo.Image = global::EvoDevo4.Properties.Resources.video;
             this.tsbVideo.ImageTransparentColor = System.Drawing.Color.Magenta;
@@ -336,7 +339,8 @@ namespace EvoDevo4
                 File.WriteAllText(programPath, Cell.GeneticCode);
 
                 evoArea = new Process();
-                evoArea.StartInfo.Arguments = programPath; 
+                evoArea.StartInfo.Arguments = programPath.EncodeAsParameter()
+                        + " " + fileName.EncodeAsParameter();
                 evoArea.StartInfo.FileName = Path.GetDirectoryName(
                             Application.ExecutablePath)
                         + Path.DirectorySeparatorChar + "EvoDevo3D.exe";
@@ -352,6 +356,7 @@ namespace EvoDevo4
                 tsbStep.Enabled = true;
                 tsbClear.Enabled = true;
                 tsbPlay.Enabled = false;
+                tsbSnapshot.Enabled = true;
             }
         }
 
@@ -375,7 +380,11 @@ namespace EvoDevo4
 
         private void tsbSnapshot_Click(object sender, EventArgs e)
         {
-            screenshotAwaiting = true;
+            if (runs())
+            {
+                evoAreaInput.Write("p");
+                evoAreaInput.Flush();
+            }
         }
 
         private void tsbVideo_Click(object sender, EventArgs e)
@@ -442,7 +451,6 @@ namespace EvoDevo4
 
         public void btnLoad_Click(object sender, EventArgs e)
         {
-            
             openFileDialog1.Filter = "Genetic Programs (*.gp)|*.gp";
             if (openFileDialog1.ShowDialog()!=DialogResult.OK) return;
             if (openFileDialog1.FileName.Length>3)
