@@ -75,7 +75,7 @@ if (cellType == ECTODERM)
 {
     // Дифференциация в клетки рта при иммиграции
     if (P(0.01) && !existsControl && maxLinksReached && sensorReaction[ENDODERM] < 0.1 &&
-        inReaggregate)
+        !inReaggregate)
     {
         cellType = MOUTH;
         Spill(MOUTH);
@@ -136,7 +136,7 @@ if (cellType == ENDODERM)
 }
 
 // Условие связывания клеток в упругий слой
-if (!inReaggregate && P(1.0 / (2.0 * (1.0 + linkedCells.Count))) && !maxLinksReached && existsEctoderm)
+if (!inReaggregate && P(0.1) && !maxLinksReached && existsEctoderm)
 {
     foreach (Cell cell in surroundingCells)
     {
@@ -152,9 +152,7 @@ if (!inReaggregate && P(1.0 / (2.0 * (1.0 + linkedCells.Count))) && !maxLinksRea
 }
 
 // Клетки рта в данный момент не имеют особого поведения.
-if (cellType == MOUTH) {
-    Spill(MOUTH);
-}
+if (cellType == MOUTH) { }
 
 // Разделение клеток на слои при иммиграции
 // Клетки эктодермы и эндодермы должны отделиться и связываться вместе только через клетки рта
@@ -172,7 +170,7 @@ if ((existsMouth || existsControl) && cellType != MOUTH) {
     }
 
     if (linkedEcto && linkedEndo) {
-        if ((linkedMouth || existsControl) && linkedEcto && linkedEndo)
+        if (linkedMouth || existsControl)
         {
             // Образование клеток рта на границе слоёв
             cellType = PREMOUTH;
