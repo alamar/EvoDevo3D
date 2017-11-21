@@ -9,8 +9,8 @@ if (numDivisions == 0)
         double t = 2.0 * 3.142 * j;
         double x = Math.Sqrt(1.0 - z * z) * Math.Cos(t);
         double y = Math.Sqrt(1.0 - z * z) * Math.Sin(t);
-        SpawnAt(x * 15.0, y * 15.0, z * 15.0);
-        SpawnAt(y * 15.0, z * 15.0, x * 15.0);
+        SpawnAt(new Vector(x * 15.0, y * 15.0, z * 15.0));
+        SpawnAt(new Vector(y * 15.0, z * 15.0, x * 15.0));
       }
     }
     Die();

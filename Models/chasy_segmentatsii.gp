@@ -1,5 +1,4 @@
 resilience=0.6;
-cellType=cellType;
 if (cellType==0)
 {
 	if (numDivisions<9)
@@ -190,7 +189,7 @@ else if (cellType==10)
 	{		
 		polarization=FromTheCrowd;
 		polarization=polarization.Normalize();	
-		SpawnPolarization(true);
+		SpawnAt(position + polarization);
 	}	
 	cellType=11;	
 }
