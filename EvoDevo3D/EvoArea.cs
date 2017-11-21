@@ -290,26 +290,30 @@ namespace EvoDevo4
             base.OnExiting(sender, args);
             Environment.Exit(0);
         }
+
+        private void DoDraw(bool forScreenshot)
+        {
+            GraphicsDevice.Clear(Color.LightGray);
+
+            PlaceCamera();
+
+            int visibleCells = DrawCells();
+
+            if (!forScreenshot)
+            {
+                DrawConcentrations();
+                this.Window.Title = "Age: " + simulation.Cells[0].age + " Cells: " + visibleCells;
+            }
+        }
  
         protected override void Draw(GameTime gameTime)
         {
-            /*if (deviceBlock || (!forceRedraw && simulation.state != Simulation.State.None))
-            {
-                return;
-            }
-            forceRedraw = false;*/
-            GraphicsDevice.Clear(Color.LightGray);
-
             try
             {
                 if (simulation.paused) {
                     cameraPosition = Vector3.Transform(cameraPosition - cameraLooksAt,
                             Matrix.CreateFromAxisAngle(upVector, -0.01f)) + cameraLooksAt;
                 }
-
-                PlaceCamera();
-                int visibleCells = DrawCells();
-                DrawConcentrations();
 
                 if (screenshotAwaiting) {
                     screenshotAwaiting = false;
@@ -324,13 +328,16 @@ namespace EvoDevo4
                     int h = GraphicsDevice.PresentationParameters.BackBufferHeight;
                     RenderTarget2D screenshot = new RenderTarget2D(GraphicsDevice, w, h);
                     GraphicsDevice.SetRenderTarget(screenshot);
-                    Draw(gameTime);
+                    DoDraw(true);
                     GraphicsDevice.Present();
                     GraphicsDevice.SetRenderTarget(null);
                     screenshot.SaveAsPng(stream, w, h);
                     stream.Close();
                 }
-                this.Window.Title = "Age: " + simulation.Cells[0].age + " Cells: " + visibleCells;
+                else
+                {
+                    DoDraw(false);
+                }
             }
             catch (Exception e)
             {
@@ -351,15 +358,11 @@ namespace EvoDevo4
 
         private void DrawConcentrations()
         {
-            List<Source> sortedSources = new List<Source>();
-            foreach (Source source in simulation.Sources.Copy())
-            {
-                sortedSources.Add(source);
-            }
-            sortedSources.Sort(WhoSCloser);
+            Vector cameraAt = new Vector(cameraPosition.X, cameraPosition.Y, cameraPosition.Z);
 
             graphics.GraphicsDevice.BlendState = BlendState.Additive;
-            foreach (Source source in sortedSources)
+            foreach (Source source in simulation.Sources.Copy().OrderBy(
+                source => -(source.position - cameraAt).Length))
             {
                 Matrix location = Matrix.CreateTranslation((float)source.position.x,
                                     (float)source.position.y, (float)source.position.z);
@@ -376,26 +379,13 @@ namespace EvoDevo4
             graphics.GraphicsDevice.BlendState = BlendState.Opaque;
         }
 
-        private int WhoSCloser(Source a, Source b)
-        {
-            Vector diff = a.position - b.position;
-            Vector3 dir = cameraPosition - cameraLooksAt;
-            dir.Normalize();
-            double cos = diff.x * dir.X + diff.y * dir.Y + diff.z * dir.Z;
-            // I know that above formulae lacks lower denominator but it's always > 0 so I don't give a damn
-
-            if (cos > 0)
-                return 1;
-            if (cos < 0)
-                return -1;
-            return 0;
-        }
-
         private int DrawCells()
         {
             int visibleCells = 0;
+            Vector cameraAt = new Vector(cameraPosition.X, cameraPosition.Y, cameraPosition.Z);
             //bool[] visibility = session.Controls.visibility();
-            foreach (Cell currenttarget in simulation.Cells.Copy())
+            foreach (Cell currenttarget in simulation.Cells.Copy().OrderBy(
+                cell => -(cell.position - cameraAt).Length))
             {
                 if (currenttarget.cellType >= 0
                         && currenttarget.cellType < visibility.Length
