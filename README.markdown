@@ -8,7 +8,7 @@ It is written in C# and is being migrated from Managed DirectX to MonoGame.
 
 Use "Clone or download -> Download ZIP" on the right over file list.
 
-Run EvoLauncher from `v1.0` directory. Use `gastrula.gp` from Models directory as an example. Should be runnable with .Net runtime under Windows. Linux will probably need Mono & MonoGame, didn't test on Mac.
+Run EvoLauncher from `v1.0` directory. Use `gastrula.gp` from Models directory as an example. Should be runnable with [.Net runtime 4.5](https://www.microsoft.com/ru-Ru/download/details.aspx?id=30653) under Windows. Linux will probably need Mono & MonoGame, didn't test on Mac.
 
 Evolution area controls:
 
