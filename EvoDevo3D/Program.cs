@@ -33,8 +33,44 @@ namespace EvoDevo3D
         #endif
         static void Main(string[] args)
         {
-            Cell.Program = new FileInfo(args.Length > 1 ? args[1] : args[0]);
-            Cell.GeneticCode = File.ReadAllText(args[0]);
+            if (args.Length == 0)
+            {
+                Console.WriteLine("Please specify program as argument");
+                return;
+            }
+
+            string programFile = null;
+            string programPath = null;
+            bool expectSeed = false;
+            int seed = 0;
+            foreach (string arg in args)
+            {
+                if (expectSeed)
+                {
+                    seed = int.Parse(arg);
+                }
+                else if (arg == "-S")
+                {
+                    expectSeed = true;
+                }
+                else if (programFile == null)
+                {
+                    programFile = arg;
+                }
+                else if (programPath == null)
+                {
+                    programPath = arg;
+                }
+                else
+                {
+                    Console.WriteLine("Unrecognized: " + arg);
+                }
+            }
+
+            Cell.Program = new FileInfo(programPath == null ? programFile : programPath);
+            Cell.GeneticCode = File.ReadAllText(programFile);
+            Cell.Random = new Random(seed);
+
             #if MONOMAC
             NSApplication.Init ();
 

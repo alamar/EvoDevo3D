@@ -3,7 +3,6 @@ namespace EvoDevo4
 {
     public class Vector
     {
-        private static Random random = new Random();
         public double x;
         public double y;
         public double z;
@@ -164,18 +163,18 @@ namespace EvoDevo4
         /// <param name="a">Vector that should be turned</param>
         /// <param name="angle">Turn angle measured in radians</param>
         /// <returns>Turned vector</returns>
-        public static Vector Turn(Vector a, double angle)
+        public static Vector Turn(Vector a, double angle, Random random)
         {
-            return Vector.Turn(a, angle, Vector.CreateRandom());
+            return Vector.Turn(a, angle, Vector.Create(random));
         }
 
         /// <summary>
         /// Turns Vector around random axis;
         /// </summary>
         /// <param name="angle">Turn angle measured in radians</param>
-        public void Turn(double angle)
+        public void Turn(double angle, Random random)
         {
-            Vector temp = Turn(this, angle);
+            Vector temp = Turn(this, angle, random);
             this.x = temp.x;
             this.y = temp.y;
             this.z = temp.z;
@@ -238,7 +237,7 @@ namespace EvoDevo4
         /// Generates random normalized vector;
         /// </summary>
         /// <returns>Generated vector;</returns>
-        public static Vector CreateRandom()
+        public static Vector Create(Random random)
         {
             double fi = random.NextDouble() * Math.PI * 2;
             double fi1 = random.NextDouble() * Math.PI * 2;

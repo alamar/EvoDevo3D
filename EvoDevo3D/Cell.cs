@@ -96,7 +96,15 @@ namespace EvoDevo4
         public Cell parent;
         public Cell lastOffspring;
 
-        public static Random random = new Random();
+        public static Random Random
+        {
+            set {
+                random = value;
+            }
+        }
+
+        public static Random random;
+
         public void FixOrganizm() {simulation.FixOrganizm();}
         public static double rnd
         {
@@ -281,7 +289,7 @@ namespace EvoDevo4
             this.IsMoving = false;
             this.movingSpeed = 0.2;
             this.cellType = 0;
-            this.polarization = Vector.CreateRandom();
+            this.polarization = Vector.Create(random);
             this.secrettingNow = new bool[simulation.proteinPenetrations.Length];
             this.secretLevel = new double[simulation.proteinPenetrations.Length];
             this.sensitivity = new double[simulation.proteinPenetrations.Length];
@@ -455,7 +463,7 @@ namespace EvoDevo4
         /// <returns></returns>
         public Cell SpawnWherever()
         {
-            Cell newCell = CreateNew(this.position + (Vector.CreateRandom() * this.radius / 5));
+            Cell newCell = CreateNew(this.position + (Vector.Create(random) * this.radius / 5));
             numDivisions++;
             newCell.InheritFrom(this);
             simulation.RegisterNewCell(newCell);
@@ -651,7 +659,7 @@ namespace EvoDevo4
         public Vector Move(bool force, bool polarized, double distance)
         {
             return Move((polarized && polarization.Length > Simulation.ALMOST_ZERO)
-                        ? polarization.Clone() : Vector.CreateRandom(),
+                        ? polarization.Clone() : Vector.Create(random),
                     distance, force);
         }
 
@@ -668,7 +676,7 @@ namespace EvoDevo4
             Vector direction = simulation.GetGradient(this.position, proteinID).Normalize();
             if (gradient.Length < Simulation.ALMOST_ZERO)
             {
-                direction = Vector.CreateRandom();
+                direction = Vector.Create(random);
             }
             if (!alongGradient)
             {
