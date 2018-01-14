@@ -1,7 +1,6 @@
 ﻿using System;
-using Microsoft.Xna.Framework;
 
-namespace EvoDevo4
+namespace EvoDevo3D
 {
     public class Source
     {

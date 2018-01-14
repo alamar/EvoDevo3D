@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows.Forms;
 
-namespace EvoDevo4.Support
+namespace EvoDevo3D.Support
 {
     public class ToolStripCheckBox : ToolStripControlHost
     {

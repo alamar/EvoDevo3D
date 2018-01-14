@@ -1,8 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EvoLauncher", "EvoLauncher\EvoLauncher.csproj", "{28A8B243-581C-456D-99A9-654DAC15FAA6}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EvoDevo3D", "EvoDevo3D\EvoDevo3D.csproj", "{4BB10488-3472-48EE-A777-874A100C17E2}"
 EndProject
 Global
@@ -13,14 +11,6 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{28A8B243-581C-456D-99A9-654DAC15FAA6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{28A8B243-581C-456D-99A9-654DAC15FAA6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{28A8B243-581C-456D-99A9-654DAC15FAA6}.Debug|x86.ActiveCfg = Debug|x86
-		{28A8B243-581C-456D-99A9-654DAC15FAA6}.Debug|x86.Build.0 = Debug|x86
-		{28A8B243-581C-456D-99A9-654DAC15FAA6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{28A8B243-581C-456D-99A9-654DAC15FAA6}.Release|Any CPU.Build.0 = Release|Any CPU
-		{28A8B243-581C-456D-99A9-654DAC15FAA6}.Release|x86.ActiveCfg = Release|x86
-		{28A8B243-581C-456D-99A9-654DAC15FAA6}.Release|x86.Build.0 = Release|x86
 		{4BB10488-3472-48EE-A777-874A100C17E2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{4BB10488-3472-48EE-A777-874A100C17E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4BB10488-3472-48EE-A777-874A100C17E2}.Debug|x86.ActiveCfg = Debug|Any CPU

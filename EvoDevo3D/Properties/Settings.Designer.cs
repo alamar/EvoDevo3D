@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace EvoDevo4.Properties {
+namespace EvoDevo3D.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]

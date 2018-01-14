@@ -1,6 +1,6 @@
 ﻿using System.Drawing;
 
-namespace EvoDevo4
+namespace EvoDevo3D
 {
     partial class GeneticCode 
     {

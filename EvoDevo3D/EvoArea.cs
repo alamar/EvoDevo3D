@@ -7,14 +7,18 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
-using EvoDevo4.Primitives;
+using System.Drawing;
+using System.Drawing.Imaging;
+using System.Windows.Forms;
 
-namespace EvoDevo4
+using OpenTK;
+using OpenTK.Graphics.OpenGL;
+using OpenTK.Input;
+
+namespace EvoDevo3D
 {
-    public class EvoArea : Game 
+    // Plug from http://www.100byte.ru/stdntswrks/cshrp/sphTK/sphTK.html
+    public class EvoArea : GLControl
     {
         // XXX remove?
         private Simulation simulation;
@@ -25,23 +29,22 @@ namespace EvoDevo4
                 simulation = value;
             }
         }
-        private Matrix cameraProjection = Matrix.Identity;
-        private Matrix cameraView = Matrix.Identity;
-        private SpherePrimitive sphere;
-        private SpherePrimitive[] concentrationSpheres;
         private Color[] cellMaterial;
         private Color[] proteinTint;
         int cellSelectionIndex;
         public bool screenshotAwaiting = false;
         public bool rendering = false;
-        private Vector3 cameraPosition = new Vector3(0, 0, 200);
+        private Vector3 cameraPosition = new Vector3(0, 0, 100);
         private Vector3 cameraLooksAt = new Vector3(0, 0, 0);
         private Vector3 upVector = new Vector3(0, 1, 0);
         private float cameraPositionAngleAroundUpVector = 0;
         private float cameraPositionAngleAroundRightVector = 0;
-        private GraphicsDeviceManager graphics;
-        private BasicEffect effect;
         private bool[] visibility;
+
+        static Bitmap bitmap = CreateTexture(16, 16, (x, y) =>
+            (x < 8 == y < 8 ? Color.Black : Color.White));
+        BitmapData data;
+        int texture;
 
         private readonly BlockingCollection<int> buffer = new BlockingCollection<int>(1);
         private readonly Thread readThread;
@@ -51,104 +54,89 @@ namespace EvoDevo4
         /// </summary>
         public EvoArea()
         {
-            graphics = new GraphicsDeviceManager (this);
-            readThread = new Thread(() => {
-                if (Console.IsInputRedirected) {
-                    int i;
-                    do {
-                        i = Console.Read();
-                        buffer.Add(i);
-                    } while (i != -1);
-                } else {
-                    while (true) { 
-                        var consoleKeyInfo = Console.ReadKey(true);
-                        if (consoleKeyInfo.KeyChar == 0) continue;  // ignore dead keys
-                        buffer.Add(consoleKeyInfo.KeyChar);
-                    }
-                }
-            });
-            readThread.Start();
-
-            graphics.IsFullScreen = false;
-            IsFixedTimeStep = false;
+            KeyDown += Keyboard_KeyDown;
+            Resize += Control_Resize;
+            BackColor = Color.LightGray;
         }
 
-        protected override void LoadContent()
+        public void Control_Resize(object sender, EventArgs e)
         {
-            InitializeObjects();
+            if (ClientSize.Height == 0)
+                ClientSize = new System.Drawing.Size(ClientSize.Width, 1);
+
+            GL.Viewport(0, 0, ClientSize.Width, ClientSize.Height);
+
+            Matrix4 projection = Matrix4.CreatePerspectiveFieldOfView((float)Math.PI / 8,
+                Width / (float)Height, 50f, 1000f);
+            GL.MatrixMode(MatrixMode.Projection);
+            GL.LoadMatrix(ref projection);
         }
 
-        private void HandleKeyboard(KeyboardState keyboard, int stdin)
+        public void Keyboard_KeyDown(object sender, KeyEventArgs e)
         {
-            if (keyboard.GetPressedKeys().Length == 0 && stdin == 0)
-            {
-                return;
-            }
-
-            if (stdin >= 'a' && stdin < 'k')
+            /*if (stdin >= 'a' && stdin < 'k')
             {
                 visibility[stdin - 'a'] = false;
             }
             if (stdin >= 'A' && stdin < 'K')
             {
                 visibility[stdin - 'A'] = true;
-            }
+            }*/
 
             Vector3 move = Vector3.Zero;
             Vector3 zoom = Vector3.Zero;
             Vector3 normalCamera = cameraLooksAt - cameraPosition;
             normalCamera.Normalize();
             Vector3 rightVector = Vector3.Transform(upVector,
-                    Matrix.CreateFromAxisAngle(normalCamera, (float)Math.PI / 2));
+                    Matrix3.CreateFromAxisAngle(normalCamera, (float)Math.PI / 2));
 
             bool turnAroundUpVector = false;
             bool turnAroundRightVector = false;
             bool turnUpVectorItself = false;
             float upVectorTurn = 0;
 
-            bool shiftPressed = keyboard.IsKeyDown(Keys.RightShift) || keyboard.IsKeyDown(Keys.LeftShift);
-            if (keyboard.IsKeyDown(Keys.Space) || stdin == ' ')
+            bool shiftPressed = e.Shift;
+            if (e.KeyCode == Keys.Space/*) || stdin == ' '*/)
             {
-                // XXX Track single press!
                 simulation.paused = !simulation.paused;
             }
-            if (keyboard.IsKeyDown(Keys.W) && !shiftPressed)
+            if (e.KeyCode == Keys.W && !shiftPressed)
             {
                 cameraPositionAngleAroundRightVector = +0.1f;
                 turnAroundRightVector = true;
             }
-            if (keyboard.IsKeyDown(Keys.S) && !shiftPressed)
+            if (e.KeyCode == Keys.S && !shiftPressed)
             {
                 cameraPositionAngleAroundRightVector = -0.1f;
                 turnAroundRightVector = true;
             }
-            if (keyboard.IsKeyDown(Keys.A) && !shiftPressed)
+            if (e.KeyCode == Keys.A && !shiftPressed)
             {
                 cameraPositionAngleAroundUpVector = +0.1f;
                 turnAroundUpVector = true;
             }
-            if (keyboard.IsKeyDown(Keys.D) && !shiftPressed)
+            if (e.KeyCode == Keys.D && !shiftPressed)
             {
                 cameraPositionAngleAroundUpVector = -0.1f;
                 turnAroundUpVector = true;
             }
-            if (keyboard.IsKeyDown(Keys.Q))
+            if (e.KeyCode == Keys.Q)
             {
                 upVectorTurn = -0.1f;
                 turnUpVectorItself = true;
             }
-            if (keyboard.IsKeyDown(Keys.E))
+            if (e.KeyCode == Keys.E)
             {
                 upVectorTurn = +0.1f;
                 turnUpVectorItself = true;
             }
-            if (keyboard.IsKeyDown(Keys.Right) || (shiftPressed && keyboard.IsKeyDown(Keys.D)))
+            if (e.KeyCode == Keys.Right || (shiftPressed && e.KeyCode == Keys.D))
                 move -= rightVector;
-            if (keyboard.IsKeyDown(Keys.Left) || (shiftPressed && keyboard.IsKeyDown(Keys.A)))
+            if (e.KeyCode == Keys.Left || (shiftPressed && e.KeyCode == Keys.A))
                 move += rightVector;
-            if (keyboard.IsKeyDown(Keys.Up) || (shiftPressed && keyboard.IsKeyDown(Keys.W)))
+            if (e.KeyCode == Keys.Up || (shiftPressed && e.KeyCode == Keys.W))
                 move -= upVector;
-            if (keyboard.IsKeyDown(Keys.Down) || (shiftPressed && keyboard.IsKeyDown(Keys.S)))
+            if (e.KeyCode == Keys.Down || (shiftPressed && e.KeyCode == Keys.S))
                 move += upVector;
 
             Vector3 dst = (cameraPosition - cameraLooksAt) / 100f;
@@ -156,59 +144,59 @@ namespace EvoDevo4
             {
                 dst *= 10f;
             }
-            else if (keyboard.IsKeyDown(Keys.LeftAlt) || keyboard.IsKeyDown(Keys.RightAlt))
+            else if (e.Alt)
             {
                 dst *= 0.1f;
             }
-            if (keyboard.IsKeyDown(Keys.R))
+            if (e.KeyCode == Keys.R)
             {
                 zoom += dst;
             }
-            if (keyboard.IsKeyDown(Keys.F))
+            if (e.KeyCode == Keys.F)
             {
                 zoom -= dst;
             }
-            if (keyboard.IsKeyDown(Keys.Enter) || stdin == 's')
+            if (e.KeyCode == Keys.Enter/* || stdin == 's'*/)
             {
                 simulation.AwaitingQueue.Enqueue('s');
                 simulation.paused = false;
                 simulation.newActionAllowed = true;
             }
-            if ((keyboard.IsKeyDown(Keys.X) && shiftPressed)
-                || stdin == 'X')
+            if (e.KeyCode == Keys.X && shiftPressed/*)
+                || stdin == 'X'*/)
             {
-                Exit();
+                //Exit();
             }
-            if (move.Length() > 0)
+            if (move.Length > 0)
             {                
                 cameraPosition += move;
                 cameraLooksAt += move;
             }
-            if (zoom.Length() > 0)
+            if (zoom.Length > 0)
             {
                 cameraPosition += zoom;
             }
             if (turnAroundUpVector)
             {
                 cameraPosition = Vector3.Transform(cameraPosition - cameraLooksAt,
-                        Matrix.CreateFromAxisAngle(upVector, cameraPositionAngleAroundUpVector)) + cameraLooksAt;
+                        Matrix3.CreateFromAxisAngle(upVector, cameraPositionAngleAroundUpVector)) + cameraLooksAt;
             }
             if (turnAroundRightVector)
             {
                 cameraPosition = Vector3.Transform(cameraPosition - cameraLooksAt,
-                        Matrix.CreateFromAxisAngle(rightVector, cameraPositionAngleAroundRightVector)) + cameraLooksAt;
+                        Matrix3.CreateFromAxisAngle(rightVector, cameraPositionAngleAroundRightVector)) + cameraLooksAt;
 
                 upVector = Vector3.Transform(upVector,
-                        Matrix.CreateFromAxisAngle(rightVector, cameraPositionAngleAroundRightVector));
+                        Matrix3.CreateFromAxisAngle(rightVector, cameraPositionAngleAroundRightVector));
             }
             if (turnUpVectorItself)
             {
                 Vector3 normalUnCamera = cameraPosition - cameraLooksAt;
                 normalUnCamera.Normalize();
                 upVector = Vector3.Transform(upVector,
-                        Matrix.CreateFromAxisAngle(normalUnCamera, upVectorTurn));
+                        Matrix3.CreateFromAxisAngle(normalUnCamera, upVectorTurn));
             }
-            if (keyboard.IsKeyUp(Keys.Tab))
+            /*if (keyboard.IsKeyUp(Keys.Tab))
             {
                 if (simulation.selectionTarget == null)
                 {
@@ -228,12 +216,12 @@ namespace EvoDevo4
                     }
                     simulation.selectionTarget = simulation.Cells[cellSelectionIndex];
                 }
-            }
-            if (keyboard.IsKeyDown(Keys.P) || stdin == 'p')
+            }*/
+            if (e.KeyCode == Keys.P/* || stdin == 'p'*/)
             {
                 screenshotAwaiting = true;
             }
-            if (keyboard.IsKeyDown(Keys.Escape))
+            if (e.KeyCode == Keys.Escape)
             {
                 simulation.selectionTarget = null;
             }
@@ -244,12 +232,6 @@ namespace EvoDevo4
         /// </summary>
         private void InitializeObjects()
         {
-            effect = new BasicEffect(graphics.GraphicsDevice);
-            sphere = new SpherePrimitive(graphics.GraphicsDevice, 2, 16);
-            concentrationSpheres = new SpherePrimitive[3];
-            concentrationSpheres[0] = new SpherePrimitive(graphics.GraphicsDevice, 3, 16);
-            concentrationSpheres[1] = new SpherePrimitive(graphics.GraphicsDevice, 7, 16);
-            concentrationSpheres[2] = new SpherePrimitive(graphics.GraphicsDevice, 15, 16);
             cellMaterial = new Color[10];
             cellMaterial[0] = Color.LightGray;
             cellMaterial[1] = Color.Chartreuse;
@@ -275,7 +257,7 @@ namespace EvoDevo4
             visibility = Enumerable.Repeat(true, 10).ToArray();
         }
 
-        protected override void Update(GameTime gameTime)
+        /*protected override void Update(GameTime gameTime)
         {
             base.Update(gameTime);
             simulation.newActionAllowed = true;
@@ -289,35 +271,51 @@ namespace EvoDevo4
         {
             base.OnExiting(sender, args);
             Environment.Exit(0);
-        }
+        }*/
 
         private void DoDraw(bool forScreenshot)
         {
-            GraphicsDevice.Clear(Color.LightGray);
+            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+            GL.ClearColor(Color.LightGray);
+            GL.Color3(Color.LightGray);
+            GL.Disable(EnableCap.Lighting);
+            GL.Enable(EnableCap.DepthTest);
+            int nx, ny;
+            // Число сегментов в моддели сферы по X и Y
+            GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
+            // Сооздаем текстуру
+            GL.Enable(EnableCap.Texture2D);
+            GL.BindTexture(TextureTarget.Texture2D, texture);
+            //MakeTexture();
+            // Сооздаем материал и источник света
+            // Выводим сферу
+            int visibleCells = DrawCells();
+            GL.Disable(EnableCap.Texture2D);
+            this.SwapBuffers();
+            //GraphicsDevice.Clear(Color.LightGray);
 
             PlaceCamera();
 
-            int visibleCells = DrawCells();
-
             if (!forScreenshot)
             {
-                DrawConcentrations();
-                this.Window.Title = "Age: " + simulation.Cells[0].age + " Cells: " + visibleCells;
+                //DrawConcentrations();
+                FindForm().Text = "Age: " + simulation.Cells[0].age + " Cells: " + visibleCells;
             }
         }
  
-        protected override void Draw(GameTime gameTime)
+
+        protected override void OnPaint(PaintEventArgs ev)
         {
             try
             {
                 if (simulation.paused) {
-                    cameraPosition = Vector3.Transform(cameraPosition - cameraLooksAt,
-                            Matrix.CreateFromAxisAngle(upVector, -0.01f)) + cameraLooksAt;
+                    //cameraPosition = Vector3.Transform(cameraPosition - cameraLooksAt,
+                    //        Matrix.CreateFromAxisAngle(upVector, -0.01f)) + cameraLooksAt;
                 }
 
                 if (screenshotAwaiting) {
                     screenshotAwaiting = false;
-                    Stream stream = new FileStream(
+                    /*Stream stream = new FileStream(
                         Path.Combine(Cell.Program.Directory.FullName,
                             String.Format("{0}_{1}_{2:000}.png",
                                 new Regex("\\.[a-zA-Z0-9]+").Replace(Cell.Program.Name, ""),
@@ -332,7 +330,7 @@ namespace EvoDevo4
                     GraphicsDevice.Present();
                     GraphicsDevice.SetRenderTarget(null);
                     screenshot.SaveAsPng(stream, w, h);
-                    stream.Close();
+                    stream.Close();*/
                 }
                 else
                 {
@@ -343,20 +341,30 @@ namespace EvoDevo4
             {
                 Console.WriteLine("OOPS. Rendering exception occured and was brutally ignored" + e.Message);
             }
+            finally
+            {
+                simulation.newActionAllowed = true;
+            }
         }
 
         private void PlaceCamera()
         {
-            effect.EnableDefaultLighting();
+            //effect.EnableDefaultLighting();
 
-            cameraProjection = Matrix.CreatePerspectiveFieldOfView((float)Math.PI / 8,
-                graphics.GraphicsDevice.Viewport.AspectRatio, 50f, 1000f);
-            cameraView = Matrix.CreateLookAt(cameraPosition, cameraLooksAt, upVector);
-            effect.Projection = cameraProjection;
-            effect.View = cameraView;
+
+            //Matrix4 projection = Matrix4.CreatePerspectiveFieldOfView((float)Math.PI / 4, Width / (float)Height, 1.0f, 64.0f);
+            //GL.MatrixMode(MatrixMode.Projection);
+            //GL.LoadMatrix(ref projection);
+            //cameraProjection = Matrix.CreatePerspectiveFieldOfView((float)Math.PI / 8,
+            //    graphics.GraphicsDevice.Viewport.AspectRatio, 50f, 1000f);
+
+            //cameraView = Matrix.CreateLookAt(cameraPosition, cameraLooksAt, upVector);
+            Matrix4 modelview = Matrix4.LookAt(cameraPosition, cameraLooksAt, upVector);
+            GL.MatrixMode(MatrixMode.Modelview);
+            GL.LoadMatrix(ref modelview);
         }
 
-        private void DrawConcentrations()
+        /*private void DrawConcentrations()
         {
             Vector cameraAt = new Vector(cameraPosition.X, cameraPosition.Y, cameraPosition.Z);
 
@@ -377,7 +385,7 @@ namespace EvoDevo4
             }
 
             graphics.GraphicsDevice.BlendState = BlendState.Opaque;
-        }
+        }*/
 
         private int DrawCells()
         {
@@ -395,10 +403,10 @@ namespace EvoDevo4
                 }
 
                 visibleCells++;
-                Matrix location = Matrix.CreateScale((float)currenttarget.radius,
+                /*Matrix location = Matrix.CreateScale((float)currenttarget.radius,
                             (float)currenttarget.radius, (float)currenttarget.radius)
                         * Matrix.CreateTranslation((float)currenttarget.position.x,
-                            (float)currenttarget.position.y, (float)currenttarget.position.z); 
+                            (float)currenttarget.position.y, (float)currenttarget.position.z); */
                 Color currentMaterial;
                 if (currenttarget.cellType > 0 && currenttarget.cellType < 10)
                 {
@@ -409,11 +417,112 @@ namespace EvoDevo4
                     currentMaterial = cellMaterial[0];
                 }
 
-                effect.World = location;
-                effect.DiffuseColor = currentMaterial.ToVector3();
-                sphere.Draw(effect);
+                //effect.World = location;
+                //effect.DiffuseColor = currentMaterial.ToVector3();
+                //effect.VertexColorEnabled = true;
+                //effect.TextureEnabled = true;
+                //effect.Texture = CreateTexture(graphics.GraphicsDevice, 64, 64, (x, y) => x < 32 == y < 32 ? Color.White : Color.Black);
+
+                Sphere(currenttarget.radius, currenttarget.position, 4.0);
             }
             return visibleCells;
+        }
+
+        public static Bitmap CreateTexture(int width, int height, Func<int,int,Color> paint)
+        {
+            //initialize a texture
+            Bitmap texture = new Bitmap(width, height);
+
+            //the array holds the color for each pixel in the texture
+            for(int pixel=0; pixel<width * height; pixel++)
+            {
+                //the function applies the color according to the specified pixel
+                texture.SetPixel(pixel / width, pixel % width,
+                    paint(pixel / width, pixel % width));
+            }
+
+            return texture;
+        }
+            
+        public void MakeTexture()
+        {
+            // Активизируем режим вывода текстуры
+            GL.Enable(EnableCap.Texture2D);
+            // Генерируем идентификатор текстуры
+            GL.GenTextures(1, out texture);
+            // Связываем текстуру с идентификатором
+            GL.BindTexture(TextureTarget.Texture2D, texture);
+            // Параметры текстуры
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+            // Создаем текстуру
+            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, data.Width, data.Height, 0,
+                OpenTK.Graphics.OpenGL.PixelFormat.Bgra, PixelType.UnsignedByte, data.Scan0);
+            //bitmap.UnlockBits(data);
+        }
+
+        protected override void OnLoad(EventArgs e)
+        {
+            InitializeObjects();
+
+            Rectangle rect = new Rectangle(0, 0, bitmap.Width, bitmap.Height);
+            data = bitmap.LockBits(rect, ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+            double crds = 12;
+
+            Control_Resize(this, EventArgs.Empty);
+
+            GL.MatrixMode(MatrixMode.Projection);
+            GL.LoadIdentity();
+            GL.Ortho(-crds, crds, -crds, crds, -crds, crds);
+
+            GL.Rotate(15, new Vector3d(0, 1, 0));
+            GL.Rotate(-55, new Vector3d(1, 0, 0));
+
+            MakeTexture();
+        }
+
+        private void Sphere(double r, Vector position, double repeats)
+        {
+            int nx = 32, ny = 32;
+            int ix, iy;
+            double x, y, z, sy, cy, sy1, cy1, sx, cx, piy, pix, ay, ay1, ax, tx, ty, ty1, dnx, dny, diy;
+            dnx = 1.0 / (double)nx;
+            dny = 1.0 / (double)ny;
+            GL.Begin(PrimitiveType.QuadStrip);
+            piy = Math.PI * dny;
+            pix = Math.PI * dnx;
+            for (iy = 0; iy < ny; iy++)
+            {
+                diy = (double)iy;
+                ay = diy * piy;
+                sy = Math.Sin(ay);
+                cy = Math.Cos(ay);
+                ty = diy * dny;
+                ay1 = ay + piy;
+                sy1 = Math.Sin(ay1);
+                cy1 = Math.Cos(ay1);
+                ty1 = ty + dny;
+                for (ix = 0; ix <= nx; ix++)
+                {
+                    ax = 2.0 * ix * pix;
+                    sx = Math.Sin(ax);
+                    cx = Math.Cos(ax);
+                    x = r * sy * cx;
+                    y = r * sy * sx;
+                    z = -r * cy;
+                    tx = (double)ix * dnx;
+                    GL.Normal3(x + position.x, y + position.y, z + position.z);
+                    GL.TexCoord2(tx * repeats, ty * repeats);
+                    GL.Vertex3(x + position.x, y + position.y, z + position.z);
+                    x = r * sy1 * cx;
+                    y = r * sy1 * sx;
+                    z = -r * cy1;
+                    GL.Normal3(x + position.x, y + position.y, z + position.z);
+                    GL.TexCoord2(tx * repeats, ty1 * repeats);
+                    GL.Vertex3(x + position.x, y + position.y, z + position.z);
+                }
+            }
+            GL.End();
         }
     }
 }

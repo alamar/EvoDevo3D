@@ -5,11 +5,10 @@ using System.Text;
 using System.Threading;
 using System.CodeDom.Compiler;
 using Microsoft.CSharp;
-using Microsoft.Xna.Framework;
 using System.Reflection;
 
 
-namespace EvoDevo4
+namespace EvoDevo3D
 {
     public class Simulation
     {
@@ -187,10 +186,7 @@ namespace EvoDevo4
             Cells.Add(newCell);
             AwaitingQueue.Enqueue('a');
             AwaitingQueue.Enqueue('p');
-            AwaitingQueue.Enqueue('p');
-            AwaitingQueue.Enqueue('p');
-            AwaitingQueue.Enqueue('p');
-            AwaitingQueue.Enqueue('p');
+
             heartbeatThread = new Thread(ActionsManager);
             heartbeatThread.IsBackground = true;
             heartbeatThread.Start();

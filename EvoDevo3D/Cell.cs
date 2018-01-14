@@ -7,7 +7,7 @@ using System.CodeDom.Compiler;
 using System.Reflection;
 using Microsoft.CSharp;
 
-namespace EvoDevo4
+namespace EvoDevo3D
 {
     public abstract class Cell
     {
@@ -120,7 +120,7 @@ namespace EvoDevo4
         public const String geneCodeTemplatePiece1 = @"
                                 using System;
                                 using System.Collections.Generic;
-                                using EvoDevo4;
+                                using EvoDevo3D;
                                 class CellStrategy : Cell
                                 {
                                     public CellStrategy(Simulation simulation, Vector position, double radius, double resilience)
@@ -183,7 +183,7 @@ namespace EvoDevo4
 
         static Cell()
         {
-            Type CType = Type.GetType("EvoDevo4.Cell");
+            Type CType = Type.GetType("EvoDevo3D.Cell");
             MemberInfo[] methods = CType.GetMembers();
             for (int i = 0; i < methods.Length; i++)
             {

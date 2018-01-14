@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
@@ -12,10 +11,10 @@ using System.CodeDom.Compiler;
 using System.Reflection;
 using System.IO;
 using Microsoft.CSharp;
-using EvoDevo4.Support;
+using EvoDevo3D.Support;
 
 
-namespace EvoDevo4
+namespace EvoDevo3D
 {
     public partial class GeneticCode : Form
     {
@@ -202,7 +201,7 @@ namespace EvoDevo4
             // 
             this.tsbSnapshot.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
             this.tsbSnapshot.Enabled = false;
-            this.tsbSnapshot.Image = global::EvoDevo4.Properties.Resources.snapshot;
+            this.tsbSnapshot.Image = global::EvoDevo3D.Properties.Resources.snapshot;
             this.tsbSnapshot.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbSnapshot.Name = "tsbSnapshot";
             this.tsbSnapshot.Size = new System.Drawing.Size(23, 22);
@@ -214,7 +213,7 @@ namespace EvoDevo4
             this.tsbVideo.CheckOnClick = true;
             this.tsbVideo.Enabled = false;
             this.tsbVideo.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.tsbVideo.Image = global::EvoDevo4.Properties.Resources.video;
+            this.tsbVideo.Image = global::EvoDevo3D.Properties.Resources.video;
             this.tsbVideo.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbVideo.Name = "tsbVideo";
             this.tsbVideo.Size = new System.Drawing.Size(23, 22);
@@ -224,7 +223,7 @@ namespace EvoDevo4
             // tsbPlay
             // 
             this.tsbPlay.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.tsbPlay.Image = global::EvoDevo4.Properties.Resources.control_play;
+            this.tsbPlay.Image = global::EvoDevo3D.Properties.Resources.control_play;
             this.tsbPlay.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbPlay.Name = "tsbPlay";
             this.tsbPlay.Size = new System.Drawing.Size(23, 22);
@@ -236,7 +235,7 @@ namespace EvoDevo4
             // 
             this.tsbPause.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
             this.tsbPause.Enabled = false;
-            this.tsbPause.Image = global::EvoDevo4.Properties.Resources.pause;
+            this.tsbPause.Image = global::EvoDevo3D.Properties.Resources.pause;
             this.tsbPause.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbPause.Name = "tsbPause";
             this.tsbPause.Size = new System.Drawing.Size(23, 22);
@@ -247,7 +246,7 @@ namespace EvoDevo4
             // 
             this.tsbStep.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
             this.tsbStep.Enabled = false;
-            this.tsbStep.Image = global::EvoDevo4.Properties.Resources.step;
+            this.tsbStep.Image = global::EvoDevo3D.Properties.Resources.step;
             this.tsbStep.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbStep.Name = "tsbStep";
             this.tsbStep.Size = new System.Drawing.Size(23, 22);
@@ -258,7 +257,7 @@ namespace EvoDevo4
             // 
             this.tsbClear.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
             this.tsbClear.Enabled = false;
-            this.tsbClear.Image = global::EvoDevo4.Properties.Resources.clear;
+            this.tsbClear.Image = global::EvoDevo3D.Properties.Resources.clear;
             this.tsbClear.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbClear.Name = "tsbClear";
             this.tsbClear.Size = new System.Drawing.Size(23, 22);
@@ -336,7 +335,7 @@ namespace EvoDevo4
             {
                 string programPath = Path.GetTempPath()
                         + Guid.NewGuid().ToString() + ".gp";
-                File.WriteAllText(programPath, Cell.GeneticCode);
+                /*File.WriteAllText(programPath, Cell.GeneticCode);
 
                 evoArea = new Process();
                 evoArea.StartInfo.Arguments = programPath.EncodeAsParameter()
@@ -350,7 +349,17 @@ namespace EvoDevo4
 
                 evoArea.Start();
 
-                this.evoAreaInput = evoArea.StandardInput;
+                this.evoAreaInput = evoArea.StandardInput;*/
+
+
+                Cell.Program = new FileInfo(fileName);
+                Cell.Random = new Random(0);
+
+
+                EvoForm form = new EvoForm();
+                form.Simulation = new Simulation(Cell.Recompile(
+                    str => Console.Error.WriteLine(str)));
+                form.Show();
 
                 tsbPause.Enabled = true;
                 tsbStep.Enabled = true;
