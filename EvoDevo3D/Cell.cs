@@ -331,18 +331,6 @@ namespace EvoDevo3D
             ancestor.lastOffspring = this;
         }
 
-        public MapPos MyPos
-        {
-            get
-            {
-                MapPos mp = new MapPos();
-                mp.x = (int)Math.Truncate(position.x);
-                mp.y = (int)Math.Truncate(position.y);
-                mp.z = (int)Math.Truncate(position.z);
-                return (mp);
-            }
-        }
-
         public static Cell GenerateRandomCell(Type cell, Simulation simulation)
         {
             Vector startingVector = new Vector(random.NextDouble() * 20 - 10,

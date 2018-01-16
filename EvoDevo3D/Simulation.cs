@@ -10,7 +10,7 @@ using System.Reflection;
 
 namespace EvoDevo3D
 {
-    public class Simulation
+    public class Simulation : IDisposable
     {
         private Thread heartbeatThread;
         public Queue<char> AwaitingQueue = new Queue<char>();
@@ -467,12 +467,11 @@ namespace EvoDevo3D
                 }
             }
         }
+
+        public void Dispose()
+        {
+            heartbeatThread.Abort();
+        }
     }
 
-    public struct MapPos
-    {
-        public int x;
-        public int y;
-        public int z;
-    }
 }

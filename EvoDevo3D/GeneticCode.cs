@@ -34,9 +34,7 @@ namespace EvoDevo3D
         private ToolStripLabel lblCells;
         private ToolStripLabel lblVisible;
 
-
-        private Process evoArea;
-        private StreamWriter evoAreaInput;
+        private EvoForm evoForm;
 
         private string fileName = "";
 
@@ -118,24 +116,7 @@ namespace EvoDevo3D
 
         public bool runs()
         {
-            if (evoArea == null)
-            {
-                return false;
-            }
-            if (evoArea.HasExited)
-            {
-                evoAreaInput.Close();
-                evoAreaInput = null;
-                evoArea = null;
-
-                tsbPlay.Enabled = true;
-                tsbPause.Enabled = false;
-                tsbStep.Enabled = false;
-                tsbClear.Enabled = false;
-                tsbSnapshot.Enabled = false;
-                return false;
-            }
-            return true;
+            return evoForm != null && !evoForm.IsDisposed;
         }
 
         public static CompilerResults CompileScript(string Source, string Reference, CodeDomProvider Provider)
@@ -331,35 +312,15 @@ namespace EvoDevo3D
         private void tsbPlay_Click(object sender, EventArgs e)
         {
             Cell.GeneticCode = rtCode.Text;
-            if (!runs() && Cell.Recompile(str => MessageBox.Show(str)) != null)
+            Type compiledCell = Cell.Recompile(str => MessageBox.Show(str));
+            if (!runs() && compiledCell != null)
             {
-                string programPath = Path.GetTempPath()
-                        + Guid.NewGuid().ToString() + ".gp";
-                /*File.WriteAllText(programPath, Cell.GeneticCode);
-
-                evoArea = new Process();
-                evoArea.StartInfo.Arguments = programPath.EncodeAsParameter()
-                        + " " + fileName.EncodeAsParameter();
-                evoArea.StartInfo.FileName = Path.GetDirectoryName(
-                            Application.ExecutablePath)
-                        + Path.DirectorySeparatorChar + "EvoDevo3D.exe";
-                evoArea.StartInfo.UseShellExecute = false;
-                evoArea.StartInfo.RedirectStandardInput = true;
-                evoArea.StartInfo.RedirectStandardOutput = false;
-
-                evoArea.Start();
-
-                this.evoAreaInput = evoArea.StandardInput;*/
-
-
                 Cell.Program = new FileInfo(fileName);
                 Cell.Random = new Random(0);
 
-
-                EvoForm form = new EvoForm();
-                form.Simulation = new Simulation(Cell.Recompile(
-                    str => Console.Error.WriteLine(str)));
-                form.Show();
+                evoForm = new EvoForm();
+                evoForm.Simulation = new Simulation(compiledCell);
+                evoForm.Show();
 
                 tsbPause.Enabled = true;
                 tsbStep.Enabled = true;
@@ -373,8 +334,7 @@ namespace EvoDevo3D
         {
             if (runs())
             {
-                evoAreaInput.Write(" ");
-                evoAreaInput.Flush();
+                evoForm.evoArea.TogglePause();
             }
         }
 
@@ -382,8 +342,7 @@ namespace EvoDevo3D
         {
             if (runs())
             {
-                evoAreaInput.Write("s");
-                evoAreaInput.Flush();
+                evoForm.evoArea.Step();
             }
         }
 
@@ -391,8 +350,7 @@ namespace EvoDevo3D
         {
             if (runs())
             {
-                evoAreaInput.Write("p");
-                evoAreaInput.Flush();
+                evoForm.evoArea.Screenshot();
             }
         }
 
@@ -406,8 +364,8 @@ namespace EvoDevo3D
             if (MessageBox.Show("This will end the simulation. Are you sure?", "EvoDevo IV",
                     MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation) == DialogResult.Yes)
             {
-                evoAreaInput.Write("X");
-                evoAreaInput.Flush();
+                evoForm.Dispose();
+                evoForm = null;
             }
         }
 
@@ -418,10 +376,10 @@ namespace EvoDevo3D
                 if (runs())
                 {
                     CheckBox chb = (CheckBox) sender;
-                    char command = (char) ((chb.Checked ? 'A' : 'a') + i);
+                    /*char command = (char) ((chb.Checked ? 'A' : 'a') + i);
 
                     evoAreaInput.Write(command.ToString());
-                    evoAreaInput.Flush();
+                    evoAreaInput.Flush();*/
                 }
             });
         }

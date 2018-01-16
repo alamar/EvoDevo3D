@@ -5,12 +5,10 @@ using System.Windows.Forms;
 
 namespace EvoDevo3D
 {
-
     public class EvoForm : Form
     {
         //Controls.
         public EvoArea evoArea = new EvoArea();
-
         public Simulation Simulation
         {
             set
@@ -19,18 +17,13 @@ namespace EvoDevo3D
             }
         }
                 
-
-        //Other code.
         protected override void OnLoad(EventArgs e)
         {
             base.OnLoad(e);
 
             evoArea.Name = "evoArea";
-
             this.Controls.Add(evoArea);
-
             OnResize(e);
-
             KeyDown += evoArea.Keyboard_KeyDown;
 
             System.Windows.Forms.Timer refresher = new System.Windows.Forms.Timer();
@@ -47,7 +40,6 @@ namespace EvoDevo3D
 
         private void Refresh(object sender, EventArgs e)
         {
-            //do whatever you want 
             evoArea.Invalidate();
         }
     }

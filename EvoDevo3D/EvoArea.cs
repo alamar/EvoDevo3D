@@ -30,6 +30,9 @@ namespace EvoDevo3D
             }
         }
         private Color[] cellMaterial;
+        private Bitmap[] cellBitmap;
+        private int[] cellTexture;
+
         private Color[] proteinTint;
         int cellSelectionIndex;
         public bool screenshotAwaiting = false;
@@ -43,11 +46,7 @@ namespace EvoDevo3D
 
         static Bitmap bitmap = CreateTexture(16, 16, (x, y) =>
             (x < 8 == y < 8 ? Color.Black : Color.White));
-        BitmapData data;
         int texture;
-
-        private readonly BlockingCollection<int> buffer = new BlockingCollection<int>(1);
-        private readonly Thread readThread;
 
         /// <summary>
         /// Creates new Render window instance;
@@ -70,6 +69,23 @@ namespace EvoDevo3D
                 Width / (float)Height, 50f, 1000f);
             GL.MatrixMode(MatrixMode.Projection);
             GL.LoadMatrix(ref projection);
+        }
+
+        public void TogglePause()
+        {
+            simulation.paused = !simulation.paused;
+        }
+
+        public void Step()
+        {
+            simulation.AwaitingQueue.Enqueue('s');
+            simulation.paused = false;
+            simulation.newActionAllowed = true;
+        }
+
+        public void Screenshot()
+        {
+            screenshotAwaiting = true;
         }
 
         public void Keyboard_KeyDown(object sender, KeyEventArgs e)
@@ -96,9 +112,9 @@ namespace EvoDevo3D
             float upVectorTurn = 0;
 
             bool shiftPressed = e.Shift;
-            if (e.KeyCode == Keys.Space/*) || stdin == ' '*/)
+            if (e.KeyCode == Keys.Space)
             {
-                simulation.paused = !simulation.paused;
+                TogglePause();
             }
             if (e.KeyCode == Keys.W && !shiftPressed)
             {
@@ -156,16 +172,14 @@ namespace EvoDevo3D
             {
                 zoom -= dst;
             }
-            if (e.KeyCode == Keys.Enter/* || stdin == 's'*/)
+            if (e.KeyCode == Keys.Enter)
             {
-                simulation.AwaitingQueue.Enqueue('s');
-                simulation.paused = false;
-                simulation.newActionAllowed = true;
+                Step();
             }
-            if (e.KeyCode == Keys.X && shiftPressed/*)
-                || stdin == 'X'*/)
+            if (e.KeyCode == Keys.X && shiftPressed)
             {
-                //Exit();
+                FindForm().Dispose();
+                return;
             }
             if (move.Length > 0)
             {                
@@ -217,9 +231,9 @@ namespace EvoDevo3D
                     simulation.selectionTarget = simulation.Cells[cellSelectionIndex];
                 }
             }*/
-            if (e.KeyCode == Keys.P/* || stdin == 'p'*/)
+            if (e.KeyCode == Keys.P)
             {
-                screenshotAwaiting = true;
+                Screenshot();
             }
             if (e.KeyCode == Keys.Escape)
             {
@@ -233,16 +247,32 @@ namespace EvoDevo3D
         private void InitializeObjects()
         {
             cellMaterial = new Color[10];
+            cellBitmap = new Bitmap[10];
+            cellTexture = new int[10];
             cellMaterial[0] = Color.LightGray;
+            cellBitmap[0] = CreateTexture(16, 16, (x, y) => cellMaterial[0]);
             cellMaterial[1] = Color.Chartreuse;
+            cellBitmap[1] = CreateTexture(16, 16, (x, y) =>
+                (x == 7 || x == 8 || x == 9 ? Color.Black : Color.White));
             cellMaterial[2] = Color.Chocolate;
+            cellBitmap[2] = CreateTexture(16, 16, (x, y) =>
+                (x == 7 || y == 7 || x == 8 || y == 8 ? Color.Black : Color.White));
             cellMaterial[3] = Color.Fuchsia;
+            cellBitmap[3] = CreateTexture(16, 16, (x, y) =>
+                (x < 8 == y < 8 ? Color.Black : Color.White));
             cellMaterial[4] = Color.CornflowerBlue;
+            cellBitmap[4] = CreateTexture(16, 16, (x, y) =>
+                ((x + y) % 16 == 0 || (x + y) % 16 == 1 ? Color.Black : Color.White));
             cellMaterial[5] = Color.ForestGreen;
+            cellBitmap[5] = CreateTexture(16, 16, (x, y) => cellMaterial[5]);
             cellMaterial[6] = Color.IndianRed;
+            cellBitmap[6] = CreateTexture(16, 16, (x, y) => cellMaterial[6]);
             cellMaterial[7] = Color.LemonChiffon;
+            cellBitmap[7] = CreateTexture(16, 16, (x, y) => cellMaterial[7]);
             cellMaterial[8] = Color.BurlyWood;
+            cellBitmap[8] = CreateTexture(16, 16, (x, y) => cellMaterial[8]);
             cellMaterial[9] = Color.Gainsboro;
+            cellBitmap[9] = CreateTexture(16, 16, (x, y) => cellMaterial[9]);
             proteinTint = new Color[10];
             proteinTint[0] = Color.Blue;
             proteinTint[1] = Color.Green;
@@ -285,7 +315,6 @@ namespace EvoDevo3D
             GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
             // Сооздаем текстуру
             GL.Enable(EnableCap.Texture2D);
-            GL.BindTexture(TextureTarget.Texture2D, texture);
             //MakeTexture();
             // Сооздаем материал и источник света
             // Выводим сферу
@@ -309,8 +338,8 @@ namespace EvoDevo3D
             try
             {
                 if (simulation.paused) {
-                    //cameraPosition = Vector3.Transform(cameraPosition - cameraLooksAt,
-                    //        Matrix.CreateFromAxisAngle(upVector, -0.01f)) + cameraLooksAt;
+                    cameraPosition = Vector3.Transform(cameraPosition - cameraLooksAt,
+                            Matrix3.CreateFromAxisAngle(upVector, -0.05f)) + cameraLooksAt;
                 }
 
                 if (screenshotAwaiting) {
@@ -417,6 +446,18 @@ namespace EvoDevo3D
                     currentMaterial = cellMaterial[0];
                 }
 
+                int currentTexture;
+                if (currenttarget.cellType > 0 && currenttarget.cellType < 10)
+                {
+                    currentTexture = cellTexture[currenttarget.cellType];
+                }
+                else
+                {
+                    currentTexture = cellTexture[0];
+                }
+
+                GL.BindTexture(TextureTarget.Texture2D, currentTexture);
+
                 //effect.World = location;
                 //effect.DiffuseColor = currentMaterial.ToVector3();
                 //effect.VertexColorEnabled = true;
@@ -434,7 +475,7 @@ namespace EvoDevo3D
             Bitmap texture = new Bitmap(width, height);
 
             //the array holds the color for each pixel in the texture
-            for(int pixel=0; pixel<width * height; pixel++)
+            for(int pixel = 0; pixel<width * height; pixel++)
             {
                 //the function applies the color according to the specified pixel
                 texture.SetPixel(pixel / width, pixel % width,
@@ -446,27 +487,29 @@ namespace EvoDevo3D
             
         public void MakeTexture()
         {
-            // Активизируем режим вывода текстуры
             GL.Enable(EnableCap.Texture2D);
-            // Генерируем идентификатор текстуры
-            GL.GenTextures(1, out texture);
-            // Связываем текстуру с идентификатором
-            GL.BindTexture(TextureTarget.Texture2D, texture);
-            // Параметры текстуры
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
-            // Создаем текстуру
-            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, data.Width, data.Height, 0,
-                OpenTK.Graphics.OpenGL.PixelFormat.Bgra, PixelType.UnsignedByte, data.Scan0);
-            //bitmap.UnlockBits(data);
+            int i = 0;
+            foreach (Bitmap bitmap in cellBitmap)
+            {
+                GL.GenTextures(1, out cellTexture[i]);
+                GL.BindTexture(TextureTarget.Texture2D, cellTexture[i]);
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+
+                Rectangle rect = new Rectangle(0, 0, bitmap.Width, bitmap.Height);
+                BitmapData data = bitmap.LockBits(rect, ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+
+                GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, data.Width, data.Height, 0,
+                    OpenTK.Graphics.OpenGL.PixelFormat.Bgra, PixelType.UnsignedByte, data.Scan0);
+                bitmap.UnlockBits(data);
+                i++;
+            }
         }
 
         protected override void OnLoad(EventArgs e)
         {
             InitializeObjects();
 
-            Rectangle rect = new Rectangle(0, 0, bitmap.Width, bitmap.Height);
-            data = bitmap.LockBits(rect, ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
             double crds = 12;
 
             Control_Resize(this, EventArgs.Empty);
@@ -479,6 +522,12 @@ namespace EvoDevo3D
             GL.Rotate(-55, new Vector3d(1, 0, 0));
 
             MakeTexture();
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+            simulation.Dispose();
         }
 
         private void Sphere(double r, Vector position, double repeats)
