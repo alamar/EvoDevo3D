@@ -38,24 +38,27 @@ namespace EvoDevo3D
             this.btnCompile = new System.Windows.Forms.Button();
             this.rtCode = new System.Windows.Forms.TextBox();
             this.btnSaveNew = new System.Windows.Forms.Button();
+            this.btnRun = new System.Windows.Forms.Button();
+            this.lblSeed = new System.Windows.Forms.Label();
+            this.txtSeed = new System.Windows.Forms.TextBox();
             //((System.ComponentModel.ISupportInitialize)(this.rtCode)).BeginInit();
             this.SuspendLayout();
             // 
             // flpCodeHelpers
             // 
             this.flpCodeHelpers.AutoScroll = true;
-            this.flpCodeHelpers.Location = new System.Drawing.Point(1, 34);
+            this.flpCodeHelpers.Location = new System.Drawing.Point(1, 3);
             this.flpCodeHelpers.Name = "flpCodeHelpers";
-            this.flpCodeHelpers.Size = new System.Drawing.Size(160, 460);
+            this.flpCodeHelpers.Size = new System.Drawing.Size(160, 490);
             this.flpCodeHelpers.TabIndex = 2;
             // 
             // openFileDialog1
             // 
-            this.openFileDialog1.FileName = "openFileDialog1";
+            this.openFileDialog1.FileName = "code.gp";
             // 
             // btnLoad
             // 
-            this.btnLoad.Location = new System.Drawing.Point(165, 30);
+            this.btnLoad.Location = new System.Drawing.Point(165, 3);
             this.btnLoad.Name = "btnLoad";
             this.btnLoad.Size = new System.Drawing.Size(50, 26);
             this.btnLoad.TabIndex = 5;
@@ -65,7 +68,7 @@ namespace EvoDevo3D
             // 
             // btnSave
             // 
-            this.btnSave.Location = new System.Drawing.Point(265, 30);
+            this.btnSave.Location = new System.Drawing.Point(265, 3);
             this.btnSave.Name = "btnSave";
             this.btnSave.Size = new System.Drawing.Size(60, 26);
             this.btnSave.TabIndex = 4;
@@ -73,9 +76,37 @@ namespace EvoDevo3D
             this.btnSave.UseVisualStyleBackColor = true;
             this.btnSave.Click += new System.EventHandler(this.btnSave_Click);
             // 
+            // btnRun
+            // 
+            this.btnRun.Location = new System.Drawing.Point(340, 3);
+            this.btnRun.Name = "btnRun";
+            this.btnRun.Size = new System.Drawing.Size(60, 26);
+            this.btnRun.TabIndex = 4;
+            this.btnRun.Text = "Run";
+            this.btnRun.Font = new Font(btnRun.Font.Name, btnRun.Font.Size, FontStyle.Bold);
+            this.btnRun.UseVisualStyleBackColor = true;
+            this.btnRun.Click += new System.EventHandler(this.btnPlay_Click);
+
+            // 
+            // txtSeed
+            // 
+            this.lblSeed.Location = new System.Drawing.Point(410, 1);
+            this.lblSeed.Name = "lblSeed";
+            this.lblSeed.Size = new System.Drawing.Size(90, 20);
+            this.lblSeed.Text = "Random Seed:";
+            this.lblSeed.TextAlign = ContentAlignment.BottomRight;
+            // 
+            // txtSeed
+            // 
+            this.txtSeed.Location = new System.Drawing.Point(505, 4);
+            this.txtSeed.Name = "txtSeed";
+            this.txtSeed.Size = new System.Drawing.Size(50, 18);
+            this.txtSeed.Text = "0";
+            this.txtSeed.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            // 
             // btnCompile
             // 
-            this.btnCompile.Location = new System.Drawing.Point(690, 30);
+            this.btnCompile.Location = new System.Drawing.Point(690, 3);
             this.btnCompile.Name = "btnCompile";
             this.btnCompile.Size = new System.Drawing.Size(60, 26);
             this.btnCompile.TabIndex = 1;
@@ -87,9 +118,9 @@ namespace EvoDevo3D
             // 
             this.rtCode.Multiline = true;
             //this.rtCode.ConfigurationManager.Language = "cs";
-            this.rtCode.Location = new System.Drawing.Point(165, 60);
+            this.rtCode.Location = new System.Drawing.Point(165, 31);
             this.rtCode.Name = "rtCode";
-            this.rtCode.Size = new System.Drawing.Size(580, 460);
+            this.rtCode.Size = new System.Drawing.Size(580, 490);
             this.rtCode.Font = new Font(FontFamily.GenericMonospace, rtCode.Font.Size);
             //this.rtCode.Styles.BraceBad.FontName = "Verdana";
             //this.rtCode.Styles.BraceLight.FontName = "Verdana";
@@ -103,7 +134,7 @@ namespace EvoDevo3D
             // 
             // btnSaveNew
             // 
-            this.btnSaveNew.Location = new System.Drawing.Point(215, 30);
+            this.btnSaveNew.Location = new System.Drawing.Point(215, 3);
             this.btnSaveNew.Name = "btnSaveNew";
             this.btnSaveNew.Size = new System.Drawing.Size(50, 26);
             this.btnSaveNew.TabIndex = 7;
@@ -120,6 +151,9 @@ namespace EvoDevo3D
             this.Controls.Add(this.rtCode);
             this.Controls.Add(this.btnLoad);
             this.Controls.Add(this.btnSave);
+            this.Controls.Add(this.btnRun);
+            this.Controls.Add(this.lblSeed);
+            this.Controls.Add(this.txtSeed);
             this.Controls.Add(this.flpCodeHelpers);
             this.Controls.Add(this.btnCompile);
             this.Name = "GeneticCode";
@@ -141,5 +175,9 @@ namespace EvoDevo3D
         private System.Windows.Forms.OpenFileDialog openFileDialog1;
         private System.Windows.Forms.TextBox rtCode;
         private System.Windows.Forms.Button btnSaveNew;
+        private System.Windows.Forms.Button btnRun;
+        private System.Windows.Forms.Label lblSeed;
+        private System.Windows.Forms.TextBox txtSeed;
+
     }
 }

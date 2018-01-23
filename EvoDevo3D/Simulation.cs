@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using System.CodeDom.Compiler;
-using Microsoft.CSharp;
-using System.Reflection;
 
+using EvoDevo3D.Support;
 
 namespace EvoDevo3D
 {

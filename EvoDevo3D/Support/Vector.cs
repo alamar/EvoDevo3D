@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace EvoDevo3D
+namespace EvoDevo3D.Support
 {
     public class Vector
     {

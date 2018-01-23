@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-namespace EvoDevo3D
+namespace EvoDevo3D.Support
 {
     public static class CommonUtil
     {

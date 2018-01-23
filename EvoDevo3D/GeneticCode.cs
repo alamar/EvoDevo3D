@@ -11,8 +11,6 @@ using System.CodeDom.Compiler;
 using System.Reflection;
 using System.IO;
 using Microsoft.CSharp;
-using EvoDevo3D.Support;
-
 
 namespace EvoDevo3D
 {
@@ -20,28 +18,13 @@ namespace EvoDevo3D
     {
         public bool screenshotAwaiting = false;
         public bool rendering = false;
-        private ToolStrip renderToolStrip;
-        private ToolStripButton tsbPlay;
-        private ToolStripButton tsbPause;
-        private ToolStripButton tsbStep;
-        private ToolStripButton tsbSnapshot;
-        private ToolStripButton tsbVideo;
-        private ToolStripButton tsbClear;
-        private System.Windows.Forms.Timer tmFPSChecker;
-        private System.Windows.Forms.Timer tmWorldHeartbeat;
-        private ToolStripCheckBox[] chbVisible;
-        private ToolStripLabel lblProcess;
-        private ToolStripLabel lblCells;
-        private ToolStripLabel lblVisible;
 
-        private EvoForm evoForm;
-
-        private string fileName = "";
+        private string fileName = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "code.gp");
 
         public GeneticCode()
         {
             InitializeComponent();
-            InitializeToolStrip();
+            this.components = new System.ComponentModel.Container();
             Label lblAction = new Label();
             lblAction.Name = "action";
             lblAction.Text = "Actions";
@@ -106,17 +89,12 @@ namespace EvoDevo3D
                 //rtCode.AutoComplete.List.Add(action.Trim());
             }
 
-            tmFPSChecker.Start();
+            this.txtSeed.Text = new Random().Next(100000).ToString();
 
             this.KeyPreview = true;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.RenderWindow_FormClosing);
-        }
-
-        public bool runs()
-        {
-            return evoForm != null && !evoForm.IsDisposed;
         }
 
         public static CompilerResults CompileScript(string Source, string Reference, CodeDomProvider Provider)
@@ -137,164 +115,6 @@ namespace EvoDevo3D
             return results;
         }
 
-        private void InitializeToolStrip()
-        {
-            this.components = new System.ComponentModel.Container();
-            this.renderToolStrip = new System.Windows.Forms.ToolStrip();
-            this.tsbSnapshot = new System.Windows.Forms.ToolStripButton();
-            this.tsbVideo = new System.Windows.Forms.ToolStripButton();
-            this.tsbPlay = new System.Windows.Forms.ToolStripButton();
-            this.tsbPause = new System.Windows.Forms.ToolStripButton();
-            this.tsbStep = new System.Windows.Forms.ToolStripButton();
-            this.tsbClear = new System.Windows.Forms.ToolStripButton();
-            this.tmFPSChecker = new System.Windows.Forms.Timer(this.components);
-            this.tmWorldHeartbeat = new System.Windows.Forms.Timer(this.components);
-            this.chbVisible = new ToolStripCheckBox[10];
-            for (int i = 0; i < chbVisible.Length; i++)
-            {
-                this.chbVisible[i] = new ToolStripCheckBox();
-            }
-            this.lblProcess = new System.Windows.Forms.ToolStripLabel();
-            this.lblCells = new System.Windows.Forms.ToolStripLabel();
-            this.lblVisible = new System.Windows.Forms.ToolStripLabel();
-            this.renderToolStrip.SuspendLayout();
-            this.SuspendLayout();
-            // 
-            // renderToolStrip
-            // 
-            this.renderToolStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-                    this.tsbSnapshot,
-                    this.tsbVideo,
-                    this.tsbPlay,
-                    this.tsbPause,
-                    this.tsbStep,
-                    this.tsbClear,
-                    this.lblProcess,
-                    this.lblCells});
-            this.renderToolStrip.Items.AddRange(chbVisible.Reverse().ToArray());
-            this.renderToolStrip.Items.Add(this.lblVisible);
-            this.renderToolStrip.Location = new System.Drawing.Point(0, 0);
-            this.renderToolStrip.Name = "renderToolStrip";
-            this.renderToolStrip.Size = new System.Drawing.Size(792, 25);
-            this.renderToolStrip.TabIndex = 0;
-            // 
-            // tsbSnapshot
-            // 
-            this.tsbSnapshot.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.tsbSnapshot.Enabled = false;
-            this.tsbSnapshot.Image = global::EvoDevo3D.Properties.Resources.snapshot;
-            this.tsbSnapshot.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.tsbSnapshot.Name = "tsbSnapshot";
-            this.tsbSnapshot.Size = new System.Drawing.Size(23, 22);
-            this.tsbSnapshot.Text = "Snapshot";
-            this.tsbSnapshot.Click += new System.EventHandler(this.tsbSnapshot_Click);
-            // 
-            // tsbVideo
-            // 
-            this.tsbVideo.CheckOnClick = true;
-            this.tsbVideo.Enabled = false;
-            this.tsbVideo.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.tsbVideo.Image = global::EvoDevo3D.Properties.Resources.video;
-            this.tsbVideo.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.tsbVideo.Name = "tsbVideo";
-            this.tsbVideo.Size = new System.Drawing.Size(23, 22);
-            this.tsbVideo.Text = "tsbVideo";
-            this.tsbVideo.Click += new System.EventHandler(this.tsbVideo_Click);
-            // 
-            // tsbPlay
-            // 
-            this.tsbPlay.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.tsbPlay.Image = global::EvoDevo3D.Properties.Resources.control_play;
-            this.tsbPlay.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.tsbPlay.Name = "tsbPlay";
-            this.tsbPlay.Size = new System.Drawing.Size(23, 22);
-            this.tsbPlay.Text = "Play";
-            this.tsbPlay.TextImageRelation = System.Windows.Forms.TextImageRelation.Overlay;
-            this.tsbPlay.Click += new System.EventHandler(this.tsbPlay_Click);
-            // 
-            // tsbPause
-            // 
-            this.tsbPause.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.tsbPause.Enabled = false;
-            this.tsbPause.Image = global::EvoDevo3D.Properties.Resources.pause;
-            this.tsbPause.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.tsbPause.Name = "tsbPause";
-            this.tsbPause.Size = new System.Drawing.Size(23, 22);
-            this.tsbPause.Text = "Pause";
-            this.tsbPause.Click += new System.EventHandler(this.tsbPause_Click);
-            // 
-            // tsbStep
-            // 
-            this.tsbStep.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.tsbStep.Enabled = false;
-            this.tsbStep.Image = global::EvoDevo3D.Properties.Resources.step;
-            this.tsbStep.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.tsbStep.Name = "tsbStep";
-            this.tsbStep.Size = new System.Drawing.Size(23, 22);
-            this.tsbStep.Text = "Step Forward";
-            this.tsbStep.Click += new System.EventHandler(this.tsbStep_Click);
-            // 
-            // tsbClear
-            // 
-            this.tsbClear.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.tsbClear.Enabled = false;
-            this.tsbClear.Image = global::EvoDevo3D.Properties.Resources.clear;
-            this.tsbClear.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.tsbClear.Name = "tsbClear";
-            this.tsbClear.Size = new System.Drawing.Size(23, 22);
-            this.tsbClear.Text = "Clear";
-            this.tsbClear.Click += new System.EventHandler(this.tsbClear_Click);
-            // 
-            // tmFPSChecker
-            // 
-            this.tmFPSChecker.Enabled = true;
-            this.tmFPSChecker.Interval = 40;
-            this.tmFPSChecker.Tick += new System.EventHandler(this.tmFPSChecker_Tick);
-            // 
-            // chbVisible
-            // 
-            for (int i = 0; i < chbVisible.Length; i++)
-            {
-                this.chbVisible[i].CheckBox.Appearance = System.Windows.Forms.Appearance.Button;
-                this.chbVisible[i].AutoSize = true;
-                this.chbVisible[i].CheckBox.Checked = true;
-                this.chbVisible[i].CheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
-                this.chbVisible[i].Name = "chbVisible" + i.ToString();
-                this.chbVisible[i].Size = new System.Drawing.Size(23, 23);
-                this.chbVisible[i].Text = i.ToString();
-                this.chbVisible[i].Alignment = ToolStripItemAlignment.Right;
-                this.chbVisible[i].CheckBox.CheckedChanged +=
-                    this.chbVisible_CheckedChanged(i);
-            }
-            // 
-            // lblProcess
-            // 
-            this.lblProcess.Name = "lblProcess";
-            this.lblVisible.AutoSize = true;
-            this.lblProcess.Text = "Process: NONE";
-            // 
-            // lblCells
-            // 
-            this.lblCells.Name = "lblCells";
-            this.lblVisible.AutoSize = true;
-            this.lblCells.Text = "Cells: 1";
-            // 
-            // lblVisible
-            // 
-            this.lblVisible.Name = "lblVisible";
-            this.lblVisible.AutoSize = true;
-            this.lblVisible.Alignment = ToolStripItemAlignment.Right;
-            this.lblVisible.Text = "Toggle Cell Type Visibility:";
-            // 
-            // RenderWindow
-            // 
-            this.ClientSize = new System.Drawing.Size(792, 742);
-            this.Controls.Add(this.renderToolStrip);
-            this.renderToolStrip.ResumeLayout(false);
-            this.renderToolStrip.PerformLayout();
-            this.ResumeLayout(false);
-            this.PerformLayout();
-        }
         void btnAction_Click(object sender, EventArgs e)
         {
             string invocation = "";
@@ -309,84 +129,22 @@ namespace EvoDevo3D
             Cell.Recompile(str => MessageBox.Show(str));
         }
 
-        private void tsbPlay_Click(object sender, EventArgs e)
+        private void btnPlay_Click(object sender, EventArgs e)
         {
             Cell.GeneticCode = rtCode.Text;
             Type compiledCell = Cell.Recompile(str => MessageBox.Show(str));
-            if (!runs() && compiledCell != null)
+            if (compiledCell != null)
             {
                 Cell.Program = new FileInfo(fileName);
-                Cell.Random = new Random(0);
 
-                evoForm = new EvoForm();
+                int seed = 0;
+                Int32.TryParse(txtSeed.Text, out seed);
+                Cell.Random = new Random(seed);
+
+                EvoForm evoForm = new EvoForm();
                 evoForm.Simulation = new Simulation(compiledCell);
                 evoForm.Show();
-
-                tsbPause.Enabled = true;
-                tsbStep.Enabled = true;
-                tsbClear.Enabled = true;
-                tsbPlay.Enabled = false;
-                tsbSnapshot.Enabled = true;
             }
-        }
-
-        private void tsbPause_Click(object sender, EventArgs e)
-        {
-            if (runs())
-            {
-                evoForm.evoArea.TogglePause();
-            }
-        }
-
-        private void tsbStep_Click(object sender, EventArgs e)
-        {
-            if (runs())
-            {
-                evoForm.evoArea.Step();
-            }
-        }
-
-        private void tsbSnapshot_Click(object sender, EventArgs e)
-        {
-            if (runs())
-            {
-                evoForm.evoArea.Screenshot();
-            }
-        }
-
-        private void tsbVideo_Click(object sender, EventArgs e)
-        {
-            rendering = !rendering;
-        }
-
-        private void tsbClear_Click(object sender, EventArgs e)
-        {
-            if (MessageBox.Show("This will end the simulation. Are you sure?", "EvoDevo IV",
-                    MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation) == DialogResult.Yes)
-            {
-                evoForm.Dispose();
-                evoForm = null;
-            }
-        }
-
-        public System.EventHandler chbVisible_CheckedChanged(int i)
-        {
-            return new System.EventHandler((sender, e) => 
-            {
-                if (runs())
-                {
-                    CheckBox chb = (CheckBox) sender;
-                    /*char command = (char) ((chb.Checked ? 'A' : 'a') + i);
-
-                    evoAreaInput.Write(command.ToString());
-                    evoAreaInput.Flush();*/
-                }
-            });
-        }
-
-        private void tmFPSChecker_Tick(object sender, EventArgs e)
-        {
-            runs();
         }
 
         private void RenderWindow_FormClosing(object sender, FormClosingEventArgs e)
@@ -441,11 +199,11 @@ namespace EvoDevo3D
 
         private void GeneticCode_Resize(object sender, EventArgs e)
         {
-            flpCodeHelpers.Height = this.Height - 70;
-            rtCode.Height = this.Height - 70;
+            flpCodeHelpers.Height = this.Height - 40;
+            rtCode.Height = this.Height - 40;
             rtCode.Width = this.Width - 183;
 
-            btnCompile.Left = this.Width - btnCompile.Width - 10;
+            btnCompile.Left = Math.Max(450, this.Width - btnCompile.Width - 10);
         }
 
         private void btnSaveNew_Click(object sender, EventArgs e)

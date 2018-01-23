@@ -61,7 +61,6 @@
     <Compile Include="GeneticCode.designer.cs">
       <DependentUpon>GeneticCode.cs</DependentUpon>
     </Compile>
-    <Compile Include="Session.cs" />
     <Compile Include="Support\ToolStripCheckBox.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <DependentUpon>Resources.resx</DependentUpon>

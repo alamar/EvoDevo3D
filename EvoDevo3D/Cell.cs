@@ -5,7 +5,10 @@ using System.Linq;
 using System.Text;
 using System.CodeDom.Compiler;
 using System.Reflection;
+
 using Microsoft.CSharp;
+
+using EvoDevo3D.Support;
 
 namespace EvoDevo3D
 {
@@ -121,6 +124,7 @@ namespace EvoDevo3D
                                 using System;
                                 using System.Collections.Generic;
                                 using EvoDevo3D;
+                                using EvoDevo3D.Support;
                                 class CellStrategy : Cell
                                 {
                                     public CellStrategy(Simulation simulation, Vector position, double radius, double resilience)
