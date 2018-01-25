@@ -15,6 +15,8 @@ using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Input;
 
+using EvoDevo3D.Support;
+
 namespace EvoDevo3D
 {
     // Plug from http://www.100byte.ru/stdntswrks/cshrp/sphTK/sphTK.html
@@ -54,12 +56,13 @@ namespace EvoDevo3D
         public EvoArea()
         {
             KeyDown += Keyboard_KeyDown;
-            Resize += Control_Resize;
             BackColor = Color.LightGray;
         }
 
-        public void Control_Resize(object sender, EventArgs e)
+        public void Resize()
         {
+            ((EvoForm)FindForm()).Resize();
+
             if (ClientSize.Height == 0)
                 ClientSize = new System.Drawing.Size(ClientSize.Width, 1);
 
@@ -69,6 +72,11 @@ namespace EvoDevo3D
                 Width / (float)Height, 50f, 1000f);
             GL.MatrixMode(MatrixMode.Projection);
             GL.LoadMatrix(ref projection);
+        }
+
+        public void SetVisibility(int cellType, bool visible)
+        {
+            visibility[cellType] = visible;
         }
 
         public void TogglePause()
@@ -305,10 +313,10 @@ namespace EvoDevo3D
 
         private void DoDraw(bool forScreenshot)
         {
+            Resize();
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             GL.ClearColor(Color.LightGray);
             GL.Color3(Color.LightGray);
-            GL.Disable(EnableCap.Lighting);
             GL.Enable(EnableCap.DepthTest);
             int nx, ny;
             // Число сегментов в моддели сферы по X и Y
@@ -318,12 +326,12 @@ namespace EvoDevo3D
             //MakeTexture();
             // Сооздаем материал и источник света
             // Выводим сферу
+            PlaceCamera();
             int visibleCells = DrawCells();
             GL.Disable(EnableCap.Texture2D);
             this.SwapBuffers();
             //GraphicsDevice.Clear(Color.LightGray);
 
-            PlaceCamera();
 
             if (!forScreenshot)
             {
@@ -340,26 +348,17 @@ namespace EvoDevo3D
                 if (simulation.paused) {
                     cameraPosition = Vector3.Transform(cameraPosition - cameraLooksAt,
                             Matrix3.CreateFromAxisAngle(upVector, -0.05f)) + cameraLooksAt;
+                    ((EvoForm)FindForm()).Paused();
                 }
 
                 if (screenshotAwaiting) {
                     screenshotAwaiting = false;
-                    /*Stream stream = new FileStream(
-                        Path.Combine(Cell.Program.Directory.FullName,
-                            String.Format("{0}_{1}_{2:000}.png",
-                                new Regex("\\.[a-zA-Z0-9]+").Replace(Cell.Program.Name, ""),
-                                DateTime.Now.ToString("yy-MM-dd_HH.mm"),
-                                simulation.Cells[0].age)),
-                        FileMode.Create, FileAccess.Write, FileShare.None);
-                    int w = GraphicsDevice.PresentationParameters.BackBufferWidth;
-                    int h = GraphicsDevice.PresentationParameters.BackBufferHeight;
-                    RenderTarget2D screenshot = new RenderTarget2D(GraphicsDevice, w, h);
-                    GraphicsDevice.SetRenderTarget(screenshot);
-                    DoDraw(true);
-                    GraphicsDevice.Present();
-                    GraphicsDevice.SetRenderTarget(null);
-                    screenshot.SaveAsPng(stream, w, h);
-                    stream.Close();*/
+                    Bitmap screenshot = GrabScreenshot();
+                    screenshot.Save(Path.Combine(Cell.Program.Directory.FullName,
+                        String.Format("{0}_{1}_{2:000}.png",
+                            new Regex("\\.[a-zA-Z0-9]+").Replace(Cell.Program.Name, ""),
+                            DateTime.Now.ToString("yy-MM-dd_HH.mm"),
+                            simulation.Cells[0].age)));
                 }
                 else
                 {
@@ -380,6 +379,35 @@ namespace EvoDevo3D
         {
             //effect.EnableDefaultLighting();
 
+            Matrix4 modelview = Matrix4.LookAt(cameraPosition, cameraLooksAt, upVector);
+            GL.MatrixMode(MatrixMode.Modelview);
+            GL.LoadMatrix(ref modelview);
+        }
+
+        private void SetUpLight(Vector position)
+        {
+            // Enable Light 0 and set its parameters.
+            GL.Light(LightName.Light0, LightParameter.Position, new float[] { -0.53f, -0.57f, -0.63f});
+            GL.Light(LightName.Light0, LightParameter.Diffuse, new float[] { 1.0f, 0.96f, 0.81f, 1.0f });
+            GL.Light(LightName.Light0, LightParameter.Specular, new float[] { 1.0f, 0.96f, 0.81f, 1.0f });
+
+            GL.Light(LightName.Light1, LightParameter.Position, new float[] { 0.72f, 0.34f, 0.6f});
+            GL.Light(LightName.Light1, LightParameter.Diffuse, new float[] { 0.96f, 0.76f, 0.41f, 1.0f });
+            GL.Light(LightName.Light1, LightParameter.Specular, new float[] { 0.0f, 0.0f, 0.0f, 0.0f });
+
+            GL.Light(LightName.Light2, LightParameter.Position, new float[] { 0.45f, -0.77f, 0.45f});
+            GL.Light(LightName.Light2, LightParameter.Diffuse, new float[] { 0.32f, 0.36f, 0.4f, 1.0f });
+            GL.Light(LightName.Light2, LightParameter.Specular, new float[] { 0.32f, 0.36f, 0.4f, 1.0f });
+
+            GL.LightModel(LightModelParameter.LightModelAmbient, new float[] { 0.05f, 0.01f, 0.18f, 1.0f });
+            GL.LightModel(LightModelParameter.LightModelTwoSide, 1);
+            GL.LightModel(LightModelParameter.LightModelLocalViewer, 1);
+           
+
+            GL.Enable(EnableCap.Lighting);
+            GL.Enable(EnableCap.Light0);
+            //GL.Enable(EnableCap.Light1);
+            //GL.Enable(EnableCap.Light2);
 
             //Matrix4 projection = Matrix4.CreatePerspectiveFieldOfView((float)Math.PI / 4, Width / (float)Height, 1.0f, 64.0f);
             //GL.MatrixMode(MatrixMode.Projection);
@@ -388,9 +416,6 @@ namespace EvoDevo3D
             //    graphics.GraphicsDevice.Viewport.AspectRatio, 50f, 1000f);
 
             //cameraView = Matrix.CreateLookAt(cameraPosition, cameraLooksAt, upVector);
-            Matrix4 modelview = Matrix4.LookAt(cameraPosition, cameraLooksAt, upVector);
-            GL.MatrixMode(MatrixMode.Modelview);
-            GL.LoadMatrix(ref modelview);
         }
 
         /*private void DrawConcentrations()
@@ -436,6 +461,7 @@ namespace EvoDevo3D
                             (float)currenttarget.radius, (float)currenttarget.radius)
                         * Matrix.CreateTranslation((float)currenttarget.position.x,
                             (float)currenttarget.position.y, (float)currenttarget.position.z); */
+                SetUpLight(currenttarget.position);
                 Color currentMaterial;
                 if (currenttarget.cellType > 0 && currenttarget.cellType < 10)
                 {
@@ -458,13 +484,26 @@ namespace EvoDevo3D
 
                 GL.BindTexture(TextureTarget.Texture2D, currentTexture);
 
+                //GL.Material(MaterialFace.Front, MaterialParameter.Ambient, new float[] { 0.3f, 0.3f, 0.3f, 1.0f });
+                //GL.Material(MaterialFace.Front, MaterialParameter.Diffuse, new float[] { 1.0f, 1.0f, 1.0f, 1.0f });
+                //GL.Material(MaterialFace.Front, MaterialParameter.Specular, new float[] { 1.0f, 1.0f, 1.0f, 1.0f });
+                //GL.Material(MaterialFace.Front, MaterialParameter.Emission, new float[] { 0.0f, 0.0f, 0.0f, 1.0f });
+                //GL.Material(MaterialFace.Front, MaterialParameter.Shininess, 0x56789012);
+
+
                 //effect.World = location;
                 //effect.DiffuseColor = currentMaterial.ToVector3();
                 //effect.VertexColorEnabled = true;
                 //effect.TextureEnabled = true;
                 //effect.Texture = CreateTexture(graphics.GraphicsDevice, 64, 64, (x, y) => x < 32 == y < 32 ? Color.White : Color.Black);
+                GL.PushMatrix();
+                GL.Translate(new Vector3(
+                    (float)currenttarget.position.x,
+                    (float)currenttarget.position.y,
+                    (float)currenttarget.position.z));
+                Sphere(currenttarget.radius, 4.0);
+                GL.PopMatrix();
 
-                Sphere(currenttarget.radius, currenttarget.position, 4.0);
             }
             return visibleCells;
         }
@@ -512,7 +551,7 @@ namespace EvoDevo3D
 
             double crds = 12;
 
-            Control_Resize(this, EventArgs.Empty);
+            Resize();
 
             GL.MatrixMode(MatrixMode.Projection);
             GL.LoadIdentity();
@@ -530,7 +569,7 @@ namespace EvoDevo3D
             simulation.Dispose();
         }
 
-        private void Sphere(double r, Vector position, double repeats)
+        private void Sphere(double r, double repeats)
         {
             int nx = 32, ny = 32;
             int ix, iy;
@@ -560,15 +599,15 @@ namespace EvoDevo3D
                     y = r * sy * sx;
                     z = -r * cy;
                     tx = (double)ix * dnx;
-                    GL.Normal3(x + position.x, y + position.y, z + position.z);
+                    GL.Normal3(x, y, z);
                     GL.TexCoord2(tx * repeats, ty * repeats);
-                    GL.Vertex3(x + position.x, y + position.y, z + position.z);
+                    GL.Vertex3(x, y, z);
                     x = r * sy1 * cx;
                     y = r * sy1 * sx;
                     z = -r * cy1;
-                    GL.Normal3(x + position.x, y + position.y, z + position.z);
+                    GL.Normal3(x, y, z);
                     GL.TexCoord2(tx * repeats, ty1 * repeats);
-                    GL.Vertex3(x + position.x, y + position.y, z + position.z);
+                    GL.Vertex3(x, y, z);
                 }
             }
             GL.End();
