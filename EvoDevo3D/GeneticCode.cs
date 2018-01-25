@@ -16,8 +16,7 @@ namespace EvoDevo3D
 {
     public partial class GeneticCode : Form
     {
-        public bool screenshotAwaiting = false;
-        public bool rendering = false;
+        private EvoForm evoForm = null;
 
         private string fileName = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "code.gp");
 
@@ -131,6 +130,12 @@ namespace EvoDevo3D
 
         private void btnPlay_Click(object sender, EventArgs e)
         {
+            if (evoForm != null && !evoForm.IsDisposed)
+            {
+                MessageBox.Show("Simulation already running!");
+                return;
+            }
+
             Cell.GeneticCode = rtCode.Text;
             Type compiledCell = Cell.Recompile(str => MessageBox.Show(str));
             if (compiledCell != null)
@@ -141,7 +146,7 @@ namespace EvoDevo3D
                 Int32.TryParse(txtSeed.Text, out seed);
                 Cell.Random = new Random(seed);
 
-                EvoForm evoForm = new EvoForm();
+                evoForm = new EvoForm();
                 evoForm.Simulation = new Simulation(compiledCell);
                 evoForm.Show();
             }
