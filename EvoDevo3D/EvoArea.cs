@@ -22,7 +22,6 @@ namespace EvoDevo3D
     // Plug from http://www.100byte.ru/stdntswrks/cshrp/sphTK/sphTK.html
     public class EvoArea : GLControl
     {
-        // XXX remove?
         private Simulation simulation;
         public Simulation Simulation
         {
@@ -45,10 +44,6 @@ namespace EvoDevo3D
         private float cameraPositionAngleAroundUpVector = 0;
         private float cameraPositionAngleAroundRightVector = 0;
         private bool[] visibility;
-
-        static Bitmap bitmap = CreateTexture(16, 16, (x, y) =>
-            (x < 8 == y < 8 ? Color.Black : Color.White));
-        int texture;
 
         /// <summary>
         /// Creates new Render window instance;
@@ -98,15 +93,6 @@ namespace EvoDevo3D
 
         public void Keyboard_KeyDown(object sender, KeyEventArgs e)
         {
-            /*if (stdin >= 'a' && stdin < 'k')
-            {
-                visibility[stdin - 'a'] = false;
-            }
-            if (stdin >= 'A' && stdin < 'K')
-            {
-                visibility[stdin - 'A'] = true;
-            }*/
-
             Vector3 move = Vector3.Zero;
             Vector3 zoom = Vector3.Zero;
             Vector3 normalCamera = cameraLooksAt - cameraPosition;
@@ -261,20 +247,24 @@ namespace EvoDevo3D
             cellBitmap[0] = CreateTexture(16, 16, (x, y) => cellMaterial[0]);
             cellMaterial[1] = Color.Chartreuse;
             cellBitmap[1] = CreateTexture(16, 16, (x, y) =>
-                (x == 7 || x == 8 || x == 9 ? Color.Black : Color.White));
+                (y == 7 || y == 8 || y == 9 ? Color.Black : cellMaterial[1]));
             cellMaterial[2] = Color.Chocolate;
             cellBitmap[2] = CreateTexture(16, 16, (x, y) =>
-                (x == 7 || y == 7 || x == 8 || y == 8 ? Color.Black : Color.White));
+                (x == 7 || y == 7 || x == 8 || y == 8 ? Color.Black : cellMaterial[2]));
             cellMaterial[3] = Color.Fuchsia;
             cellBitmap[3] = CreateTexture(16, 16, (x, y) =>
-                (x < 8 == y < 8 ? Color.Black : Color.White));
+                (x < 8 == y < 8 ? Color.Black : cellMaterial[3]));
             cellMaterial[4] = Color.CornflowerBlue;
             cellBitmap[4] = CreateTexture(16, 16, (x, y) =>
-                ((x + y) % 16 == 0 || (x + y) % 16 == 1 ? Color.Black : Color.White));
+                ((x + y) % 16 == 0 || (x + y) % 16 == 1 ? Color.Black : cellMaterial[4]));
             cellMaterial[5] = Color.ForestGreen;
-            cellBitmap[5] = CreateTexture(16, 16, (x, y) => cellMaterial[5]);
+            cellBitmap[5] = CreateTexture(16, 16, (x, y) => 
+                (x == 7 || x == 8 || x == 9 ? Color.Black : cellMaterial[5]));
             cellMaterial[6] = Color.IndianRed;
-            cellBitmap[6] = CreateTexture(16, 16, (x, y) => cellMaterial[6]);
+            cellBitmap[6] = CreateTexture(16, 16, (x, y) => 
+                ((x == 4 || x == 5 || x == 11 || x == 12) && (y > 4 && y < 12)) ||
+                ((y == 4 || y == 5 || y == 11 || y == 12) && (x > 4 && x < 12))
+                ? Color.Black : cellMaterial[6]);
             cellMaterial[7] = Color.LemonChiffon;
             cellBitmap[7] = CreateTexture(16, 16, (x, y) => cellMaterial[7]);
             cellMaterial[8] = Color.BurlyWood;
@@ -327,6 +317,8 @@ namespace EvoDevo3D
             // Сооздаем материал и источник света
             // Выводим сферу
             PlaceCamera();
+
+            SetUpLight();
             int visibleCells = DrawCells();
             GL.Disable(EnableCap.Texture2D);
             this.SwapBuffers();
@@ -384,7 +376,7 @@ namespace EvoDevo3D
             GL.LoadMatrix(ref modelview);
         }
 
-        private void SetUpLight(Vector position)
+        private void SetUpLight()
         {
             // Enable Light 0 and set its parameters.
             GL.Light(LightName.Light0, LightParameter.Position, new float[] { -0.53f, -0.57f, -0.63f});
@@ -402,20 +394,11 @@ namespace EvoDevo3D
             GL.LightModel(LightModelParameter.LightModelAmbient, new float[] { 0.05f, 0.01f, 0.18f, 1.0f });
             GL.LightModel(LightModelParameter.LightModelTwoSide, 1);
             GL.LightModel(LightModelParameter.LightModelLocalViewer, 1);
-           
 
             GL.Enable(EnableCap.Lighting);
             GL.Enable(EnableCap.Light0);
-            //GL.Enable(EnableCap.Light1);
-            //GL.Enable(EnableCap.Light2);
-
-            //Matrix4 projection = Matrix4.CreatePerspectiveFieldOfView((float)Math.PI / 4, Width / (float)Height, 1.0f, 64.0f);
-            //GL.MatrixMode(MatrixMode.Projection);
-            //GL.LoadMatrix(ref projection);
-            //cameraProjection = Matrix.CreatePerspectiveFieldOfView((float)Math.PI / 8,
-            //    graphics.GraphicsDevice.Viewport.AspectRatio, 50f, 1000f);
-
-            //cameraView = Matrix.CreateLookAt(cameraPosition, cameraLooksAt, upVector);
+            GL.Enable(EnableCap.Light1);
+            GL.Enable(EnableCap.Light2);
         }
 
         /*private void DrawConcentrations()
@@ -445,7 +428,6 @@ namespace EvoDevo3D
         {
             int visibleCells = 0;
             Vector cameraAt = new Vector(cameraPosition.X, cameraPosition.Y, cameraPosition.Z);
-            //bool[] visibility = session.Controls.visibility();
             foreach (Cell currenttarget in simulation.Cells.Copy().OrderBy(
                 cell => -(cell.position - cameraAt).Length))
             {
@@ -457,11 +439,6 @@ namespace EvoDevo3D
                 }
 
                 visibleCells++;
-                /*Matrix location = Matrix.CreateScale((float)currenttarget.radius,
-                            (float)currenttarget.radius, (float)currenttarget.radius)
-                        * Matrix.CreateTranslation((float)currenttarget.position.x,
-                            (float)currenttarget.position.y, (float)currenttarget.position.z); */
-                SetUpLight(currenttarget.position);
                 Color currentMaterial;
                 if (currenttarget.cellType > 0 && currenttarget.cellType < 10)
                 {
@@ -484,18 +461,6 @@ namespace EvoDevo3D
 
                 GL.BindTexture(TextureTarget.Texture2D, currentTexture);
 
-                //GL.Material(MaterialFace.Front, MaterialParameter.Ambient, new float[] { 0.3f, 0.3f, 0.3f, 1.0f });
-                //GL.Material(MaterialFace.Front, MaterialParameter.Diffuse, new float[] { 1.0f, 1.0f, 1.0f, 1.0f });
-                //GL.Material(MaterialFace.Front, MaterialParameter.Specular, new float[] { 1.0f, 1.0f, 1.0f, 1.0f });
-                //GL.Material(MaterialFace.Front, MaterialParameter.Emission, new float[] { 0.0f, 0.0f, 0.0f, 1.0f });
-                //GL.Material(MaterialFace.Front, MaterialParameter.Shininess, 0x56789012);
-
-
-                //effect.World = location;
-                //effect.DiffuseColor = currentMaterial.ToVector3();
-                //effect.VertexColorEnabled = true;
-                //effect.TextureEnabled = true;
-                //effect.Texture = CreateTexture(graphics.GraphicsDevice, 64, 64, (x, y) => x < 32 == y < 32 ? Color.White : Color.Black);
                 GL.PushMatrix();
                 GL.Translate(new Vector3(
                     (float)currenttarget.position.x,
@@ -503,20 +468,16 @@ namespace EvoDevo3D
                     (float)currenttarget.position.z));
                 Sphere(currenttarget.radius, 4.0);
                 GL.PopMatrix();
-
             }
             return visibleCells;
         }
 
         public static Bitmap CreateTexture(int width, int height, Func<int,int,Color> paint)
         {
-            //initialize a texture
             Bitmap texture = new Bitmap(width, height);
 
-            //the array holds the color for each pixel in the texture
             for(int pixel = 0; pixel<width * height; pixel++)
             {
-                //the function applies the color according to the specified pixel
                 texture.SetPixel(pixel / width, pixel % width,
                     paint(pixel / width, pixel % width));
             }
