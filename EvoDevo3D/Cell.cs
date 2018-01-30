@@ -10,6 +10,8 @@ using Microsoft.CSharp;
 
 using EvoDevo3D.Support;
 
+using Troschuetz.Random;
+
 namespace EvoDevo3D
 {
     public abstract class Cell
@@ -99,14 +101,14 @@ namespace EvoDevo3D
         public Cell parent;
         public Cell lastOffspring;
 
-        public static Random Random
+        public static TRandom Random
         {
             set {
                 random = value;
             }
         }
 
-        public static Random random;
+        public static TRandom random;
 
         public void FixOrganizm() {simulation.FixOrganizm();}
         public static double rnd

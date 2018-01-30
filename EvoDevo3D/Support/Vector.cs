@@ -1,4 +1,5 @@
 ﻿using System;
+using Troschuetz.Random;
 
 namespace EvoDevo3D.Support
 {
@@ -164,7 +165,7 @@ namespace EvoDevo3D.Support
         /// <param name="a">Vector that should be turned</param>
         /// <param name="angle">Turn angle measured in radians</param>
         /// <returns>Turned vector</returns>
-        public static Vector Turn(Vector a, double angle, Random random)
+        public static Vector Turn(Vector a, double angle, TRandom random)
         {
             return Vector.Turn(a, angle, Vector.Create(random));
         }
@@ -173,7 +174,7 @@ namespace EvoDevo3D.Support
         /// Turns Vector around random axis;
         /// </summary>
         /// <param name="angle">Turn angle measured in radians</param>
-        public void Turn(double angle, Random random)
+        public void Turn(double angle, TRandom random)
         {
             Vector temp = Turn(this, angle, random);
             this.x = temp.x;
@@ -238,7 +239,7 @@ namespace EvoDevo3D.Support
         /// Generates random normalized vector;
         /// </summary>
         /// <returns>Generated vector;</returns>
-        public static Vector Create(Random random)
+        public static Vector Create(TRandom random)
         {
             double fi = random.NextDouble() * Math.PI * 2;
             double fi1 = random.NextDouble() * Math.PI * 2;

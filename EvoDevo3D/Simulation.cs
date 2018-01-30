@@ -10,10 +10,8 @@ namespace EvoDevo3D
 {
     public class Simulation : IDisposable
     {
+        private const int NUM_PASSIVE_CYCLES = 5;
         private Thread heartbeatThread;
-        public Queue<char> AwaitingQueue = new Queue<char>();
-        public enum State {None, Passive, Active};
-        public State state = State.None;
         private int step;
         public int Step
         {
@@ -25,7 +23,6 @@ namespace EvoDevo3D
 
         public const double ALMOST_ZERO = 0.000001;
         public Cell selectionTarget;
-        private bool PassiveMovementBlock = false;
         public volatile bool paused = false;
         public volatile bool newActionAllowed = false;
 
@@ -182,8 +179,6 @@ namespace EvoDevo3D
             newCell.radius = 1;
             newCell.position.Trivialize();
             Cells.Add(newCell);
-            AwaitingQueue.Enqueue('a');
-            AwaitingQueue.Enqueue('p');
 
             heartbeatThread = new Thread(ActionsManager);
             heartbeatThread.IsBackground = true;
@@ -237,7 +232,6 @@ namespace EvoDevo3D
 
         public void Heartbeat()
         {
-            while (PassiveMovementBlock) Thread.Sleep(100);
             List<Cell> TempCells = new List<Cell>();
             List<Cell> TempActiveCells = new List<Cell>();
             foreach (Cell cell in Cells)
@@ -385,34 +379,17 @@ namespace EvoDevo3D
         {
             while (true)
             {
-                state = State.None;
                 while (paused || !newActionAllowed)
                 {
                     Thread.Sleep(40);
                 }
 
-
                 newActionAllowed = false;
-                char nextAction = AwaitingQueue.Dequeue();
-                if (nextAction == 'p' || nextAction == 'a')
-                    AwaitingQueue.Enqueue(nextAction);
-                if (nextAction == 'p') // passive
+                GeneticTick();
+                for (int i = 0; i < NUM_PASSIVE_CYCLES; i++)
                 {
-                    state = State.Passive;
                     Heartbeat();
-                    state = State.None;
                 }
-                if (nextAction == 'a') //active
-                {
-                    state = State.Active;
-                    GeneticTick();
-                    state = State.None;
-                }
-                if (nextAction == 's') // stop
-                {
-                    paused = true;
-                }
-
             }
         }
 
@@ -432,7 +409,6 @@ namespace EvoDevo3D
 
         public void GeneticTick()
         {
-            PassiveMovementBlock = true;
             foreach (Cell cell in Cells.Copy())
             {
                 cell.LiveOn();                
@@ -441,7 +417,6 @@ namespace EvoDevo3D
             {
                 cell.surroundingCells = GetSurroungingCells(cell);
             }
-            PassiveMovementBlock = false;
             step++;
         }
 
@@ -471,5 +446,4 @@ namespace EvoDevo3D
             heartbeatThread.Abort();
         }
     }
-
 }

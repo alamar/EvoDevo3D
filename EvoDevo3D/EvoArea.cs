@@ -81,7 +81,6 @@ namespace EvoDevo3D
 
         public void Step()
         {
-            simulation.AwaitingQueue.Enqueue('s');
             simulation.paused = false;
             simulation.newActionAllowed = true;
         }
@@ -363,7 +362,10 @@ namespace EvoDevo3D
             }
             finally
             {
-                simulation.newActionAllowed = true;
+                if (!simulation.paused)
+                {
+                    simulation.newActionAllowed = true;
+                }
             }
         }
 

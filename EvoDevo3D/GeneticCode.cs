@@ -11,6 +11,8 @@ using System.CodeDom.Compiler;
 using System.Reflection;
 using System.IO;
 using Microsoft.CSharp;
+using Troschuetz.Random;
+using Troschuetz.Random.Generators;
 
 namespace EvoDevo3D
 {
@@ -144,7 +146,7 @@ namespace EvoDevo3D
 
                 int seed = 0;
                 Int32.TryParse(txtSeed.Text, out seed);
-                Cell.Random = new Random(seed);
+                Cell.Random = new TRandom(new XorShift128Generator(seed));
 
                 evoForm = new EvoForm();
                 evoForm.Simulation = new Simulation(compiledCell);

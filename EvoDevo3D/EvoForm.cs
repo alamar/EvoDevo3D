@@ -44,7 +44,7 @@ namespace EvoDevo3D
             KeyDown += evoArea.Keyboard_KeyDown;
 
             System.Windows.Forms.Timer refresher = new System.Windows.Forms.Timer();
-            refresher.Interval = 200;
+            refresher.Interval = 250;
             refresher.Tick += new System.EventHandler(Refresh);
             refresher.Start();
         }
