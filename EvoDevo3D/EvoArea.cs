@@ -30,7 +30,6 @@ namespace EvoDevo3D
                 simulation = value;
             }
         }
-        private Color[] cellMaterial;
         private Bitmap[] cellBitmap;
         private int[] cellTexture;
 
@@ -239,7 +238,7 @@ namespace EvoDevo3D
         /// </summary>
         private void InitializeObjects()
         {
-            cellMaterial = new Color[10];
+            Color[] cellMaterial = new Color[10];
             cellBitmap = new Bitmap[10];
             cellTexture = new int[10];
             cellMaterial[0] = Color.LightGray;
@@ -265,11 +264,16 @@ namespace EvoDevo3D
                 ((y == 4 || y == 5 || y == 11 || y == 12) && (x > 4 && x < 12))
                 ? Color.Black : cellMaterial[6]);
             cellMaterial[7] = Color.LemonChiffon;
-            cellBitmap[7] = CreateTexture(16, 16, (x, y) => cellMaterial[7]);
+            cellBitmap[7] = CreateTexture(16, 16, (x, y) =>
+                (Math.Abs(x - 8) + Math.Abs (y - 8)) < 4 ? Color.Black : cellMaterial[7]);
             cellMaterial[8] = Color.BurlyWood;
-            cellBitmap[8] = CreateTexture(16, 16, (x, y) => cellMaterial[8]);
+            cellBitmap[8] = CreateTexture(16, 16, (x, y) => 
+                (x % 3 == 0) && (y % 3 == 0) ? Color.Black : cellMaterial[8]);
             cellMaterial[9] = Color.Gainsboro;
-            cellBitmap[9] = CreateTexture(16, 16, (x, y) => cellMaterial[9]);
+            cellBitmap[9] = CreateTexture(16, 16, (x, y) =>
+                x == (Math.Abs(8 - y) / 2) || (x + 1) == (Math.Abs(8 - y) / 2) ||
+                (x - 8) == (Math.Abs(8 - y) / 2) || (x - 9) == (Math.Abs(8 - y) / 2) 
+                ? Color.Black : cellMaterial[9]);
             proteinTint = new Color[10];
             proteinTint[0] = Color.Blue;
             proteinTint[1] = Color.Green;
@@ -441,15 +445,6 @@ namespace EvoDevo3D
                 }
 
                 visibleCells++;
-                Color currentMaterial;
-                if (currenttarget.cellType > 0 && currenttarget.cellType < 10)
-                {
-                    currentMaterial = cellMaterial[currenttarget.cellType];
-                }
-                else
-                {
-                    currentMaterial = cellMaterial[0];
-                }
 
                 int currentTexture;
                 if (currenttarget.cellType > 0 && currenttarget.cellType < 10)
