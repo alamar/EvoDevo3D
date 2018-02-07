@@ -10,6 +10,13 @@ namespace EvoDevo3D
 {
     public class Simulation : IDisposable
     {
+        public enum Mode {
+            Run,
+            FastForward,
+            Pause,
+            // Ephemeral:
+            Step
+        }
         private const int NUM_PASSIVE_CYCLES = 5;
         private Thread heartbeatThread;
         private int step;
@@ -23,7 +30,7 @@ namespace EvoDevo3D
 
         public const double ALMOST_ZERO = 0.000001;
         public Cell selectionTarget;
-        public volatile bool paused = false;
+        public volatile Mode mode = Mode.Run;
         public volatile bool newActionAllowed = false;
 
         public List<Cell> Cells = new List<Cell>();
@@ -379,7 +386,7 @@ namespace EvoDevo3D
         {
             while (true)
             {
-                while (paused || !newActionAllowed)
+                while (!newActionAllowed)
                 {
                     Thread.Sleep(40);
                 }

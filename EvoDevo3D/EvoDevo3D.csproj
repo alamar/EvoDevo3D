@@ -65,11 +65,11 @@
       <DependentUpon>GeneticCode.cs</DependentUpon>
     </Compile>
     <Compile Include="Support\ToolStripCheckBox.cs" />
+    <Compile Include="EvoForm.cs" />
+    <Compile Include="Support\Vector.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="EvoForm.cs" />
-    <Compile Include="Support\Vector.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Icon.png" />
@@ -80,6 +80,7 @@
     <None Include="step.png" />
     <None Include="video.gif" />
     <None Include="packages.config" />
+    <None Include="fast_forward.png" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Icon.ico" />

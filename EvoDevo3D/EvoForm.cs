@@ -13,6 +13,7 @@ namespace EvoDevo3D
         //Controls.
 
         private ToolStrip renderToolStrip;
+        private ToolStripButton tsbFastForward;
         private ToolStripButton tsbPause;
         private ToolStripButton tsbStep;
         private ToolStripButton tsbSnapshot;
@@ -21,6 +22,7 @@ namespace EvoDevo3D
 
         private ToolStripCheckBox[] chbVisible;
         private ToolStripLabel lblVisible;
+        private System.Windows.Forms.Timer refresher;
 
         public EvoArea evoArea = new EvoArea();
         public Simulation Simulation
@@ -43,7 +45,7 @@ namespace EvoDevo3D
             OnResize(null);
             KeyDown += evoArea.Keyboard_KeyDown;
 
-            System.Windows.Forms.Timer refresher = new System.Windows.Forms.Timer();
+            refresher = new System.Windows.Forms.Timer();
             refresher.Interval = 250;
             refresher.Tick += new System.EventHandler(Refresh);
             refresher.Start();
@@ -54,6 +56,7 @@ namespace EvoDevo3D
             //this.components = new System.ComponentModel.Container();
             this.renderToolStrip = new System.Windows.Forms.ToolStrip();
             this.tsbSnapshot = new System.Windows.Forms.ToolStripButton();
+            this.tsbFastForward = new System.Windows.Forms.ToolStripButton();
             this.tsbPause = new System.Windows.Forms.ToolStripButton();
             this.tsbStep = new System.Windows.Forms.ToolStripButton();
             this.tsbClear = new System.Windows.Forms.ToolStripButton();
@@ -70,6 +73,7 @@ namespace EvoDevo3D
             // 
             this.renderToolStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
                 this.tsbSnapshot,
+                this.tsbFastForward,
                 this.tsbPause,
                 this.tsbStep,
                 this.tsbClear});
@@ -89,6 +93,16 @@ namespace EvoDevo3D
             this.tsbSnapshot.Size = new System.Drawing.Size(23, 22);
             this.tsbSnapshot.Text = "Snapshot";
             this.tsbSnapshot.Click += new System.EventHandler(this.tsbSnapshot_Click);
+            // 
+            // tsbFastForward
+            // 
+            this.tsbFastForward.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.tsbFastForward.Image = global::EvoDevo3D.Properties.Resources.fastForward;
+            this.tsbFastForward.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.tsbFastForward.Name = "tsbFastForward";
+            this.tsbFastForward.Size = new System.Drawing.Size(23, 22);
+            this.tsbFastForward.Text = "Fast Forward";
+            this.tsbFastForward.Click += new System.EventHandler(this.tsbFastForward_Click);
             // 
             // tsbPause
             // 
@@ -153,16 +167,19 @@ namespace EvoDevo3D
             this.PerformLayout();
         }
 
+        void tsbFastForward_Click(object sender, EventArgs e)
+        {
+            Mode(Simulation.Mode.FastForward);
+        }
 
         private void tsbPause_Click(object sender, EventArgs e)
         {
-            evoArea.TogglePause();
-            this.tsbPause.Image = global::EvoDevo3D.Properties.Resources.pause;
+            Mode(Simulation.Mode.Pause);
         }
 
         private void tsbStep_Click(object sender, EventArgs e)
         {
-            evoArea.Step();
+            Mode(Simulation.Mode.Step);
         }
 
         private void tsbSnapshot_Click(object sender, EventArgs e)
@@ -198,10 +215,42 @@ namespace EvoDevo3D
             evoArea.Invalidate();
         }
 
-        public void Paused()
+        public void Mode(Simulation.Mode toggle)
         {
-            this.tsbPause.Image = global::EvoDevo3D.Properties.Resources.control_play;
-            this.tsbPause.Text = "Resume";
+            Simulation sim = evoArea.Simulation;
+
+            if (toggle == Simulation.Mode.Step)
+            {
+                sim.newActionAllowed = true;
+                if (sim.mode != Simulation.Mode.Pause)
+                    Mode(Simulation.Mode.Pause);
+                return;
+            }
+
+            refresher.Interval = 250;
+            this.tsbPause.Image = global::EvoDevo3D.Properties.Resources.pause;
+            this.tsbPause.Text = "Pause";
+            this.tsbFastForward.Image = global::EvoDevo3D.Properties.Resources.fastForward;
+            this.tsbFastForward.Text = "Fast Forward";
+
+            if (toggle == Simulation.Mode.Pause && sim.mode != Simulation.Mode.Pause)
+            {
+                this.tsbPause.Image = global::EvoDevo3D.Properties.Resources.control_play;
+                this.tsbPause.Text = "Resume";
+                sim.mode = Simulation.Mode.Pause;
+                return;
+            }
+
+            if (toggle == Simulation.Mode.FastForward && sim.mode != Simulation.Mode.FastForward)
+            {
+                this.tsbFastForward.Image = global::EvoDevo3D.Properties.Resources.control_play;
+                this.tsbFastForward.Text = "Normal Speed";
+                sim.mode = Simulation.Mode.FastForward;
+                refresher.Interval = 50;
+                return;
+            }
+
+            sim.mode = Simulation.Mode.Run;
         }
     }
 }

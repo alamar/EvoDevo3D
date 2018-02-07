@@ -413,7 +413,8 @@ namespace EvoDevo3D
         #region      --- Genetic Actions ---
 
         public void Pause() {
-            simulation.paused = true;
+            // XXX doesn't update form
+            simulation.mode = Simulation.Mode.Pause;    
         }
 
         public bool P(double probability) {

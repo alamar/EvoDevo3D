@@ -29,6 +29,10 @@ namespace EvoDevo3D
             {
                 simulation = value;
             }
+            get
+            {
+                return simulation;
+            }
         }
         private Bitmap[] cellBitmap;
         private int[] cellTexture;
@@ -73,17 +77,6 @@ namespace EvoDevo3D
             visibility[cellType] = visible;
         }
 
-        public void TogglePause()
-        {
-            simulation.paused = !simulation.paused;
-        }
-
-        public void Step()
-        {
-            simulation.paused = false;
-            simulation.newActionAllowed = true;
-        }
-
         public void Screenshot()
         {
             screenshotAwaiting = true;
@@ -106,7 +99,7 @@ namespace EvoDevo3D
             bool shiftPressed = e.Shift;
             if (e.KeyCode == Keys.Space)
             {
-                TogglePause();
+                ((EvoForm)FindForm()).Mode(Simulation.Mode.Pause);
             }
             if (e.KeyCode == Keys.W && !shiftPressed)
             {
@@ -166,7 +159,7 @@ namespace EvoDevo3D
             }
             if (e.KeyCode == Keys.Enter)
             {
-                Step();
+                ((EvoForm)FindForm()).Mode(Simulation.Mode.Step);
             }
             if (e.KeyCode == Keys.X && shiftPressed)
             {
@@ -340,10 +333,9 @@ namespace EvoDevo3D
         {
             try
             {
-                if (simulation.paused) {
+                if (simulation.mode == Simulation.Mode.Pause) {
                     cameraPosition = Vector3.Transform(cameraPosition - cameraLooksAt,
                             Matrix3.CreateFromAxisAngle(upVector, -0.05f)) + cameraLooksAt;
-                    ((EvoForm)FindForm()).Paused();
                 }
 
                 if (screenshotAwaiting) {
@@ -366,7 +358,7 @@ namespace EvoDevo3D
             }
             finally
             {
-                if (!simulation.paused)
+                if (simulation.mode != Simulation.Mode.Pause)
                 {
                     simulation.newActionAllowed = true;
                 }
