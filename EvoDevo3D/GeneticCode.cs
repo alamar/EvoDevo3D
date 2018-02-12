@@ -90,7 +90,7 @@ namespace EvoDevo3D
                 //rtCode.AutoComplete.List.Add(action.Trim());
             }
 
-            this.txtSeed.Text = new Random().Next(100000).ToString();
+            btnReroll_Click(this, null);
 
             this.KeyPreview = true;
             this.MaximizeBox = false;
@@ -158,6 +158,21 @@ namespace EvoDevo3D
         {
             Environment.Exit(0);
         }
+
+        private void btnSaveNew_Click(object sender, EventArgs e)
+        {
+            if (fileName != "")
+            {
+                using (FileStream fs = new FileStream(fileName, FileMode.Create))
+                {
+                    AddText(fs, rtCode.Text);
+                }
+            }
+            else
+            {
+                btnSave_Click(sender, e);
+            }
+        }
         
         public void btnSave_Click(object sender, EventArgs e)
         {
@@ -199,6 +214,11 @@ namespace EvoDevo3D
             }
         }
 
+        private void btnReroll_Click(object sender, EventArgs e)
+        {
+            this.txtSeed.Text = new Random().Next(100000).ToString();
+        }
+
         private void GeneticCode_Load(object sender, EventArgs e)
         {
 
@@ -210,22 +230,8 @@ namespace EvoDevo3D
             rtCode.Height = this.Height - 40;
             rtCode.Width = this.Width - 183;
 
-            btnCompile.Left = Math.Max(450, this.Width - btnCompile.Width - 10);
+            btnCompile.Left = Math.Max(630, this.Width - btnCompile.Width - 10);
         }
 
-        private void btnSaveNew_Click(object sender, EventArgs e)
-        {
-            if (fileName != "")
-            {
-                using (FileStream fs = new FileStream(fileName, FileMode.Create))
-                {
-                    AddText(fs, rtCode.Text);
-                }
-            }
-            else
-            {
-                btnSave_Click(sender, e);
-            }
-        }
     }
 }
