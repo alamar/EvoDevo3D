@@ -1,1 +1,4 @@
-*.png
+Models/*.png
+EvoDevo3D/bin
+EvoDevo3D/obj
+packages
