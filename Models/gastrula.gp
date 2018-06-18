@@ -1,3 +1,4 @@
+//77895
 // Параметры модели - наличие координатора, эксперимент с реагрегацией
 bool CONTROL_CELL = true, SMASH = false;
 
@@ -24,17 +25,18 @@ bool existsControl = (sensorReaction[CONTROL] > Simulation.ALMOST_ZERO);
 // Вещество, сигнализирующее повреждение зародыша и необходимость вторично собраться в морулу.
 int REAGGREGATE = 6;
 
-bool maxLinksReached = (linkedCells.Count >= 10);
+bool maxLinksReached = (linkedCells.Count >= 8);
 
 bool inReaggregate = (sensorReaction[REAGGREGATE] > 4.0);
 
 // Проникающая способность сигнала эктодермы - падение на 1% на каждую единицу расстояния.
 // Подобрана, чтобы при инвагинации эндодерма равномерно распределялась по эктодерме,
 //  а не притягивалась в одну точку, слипаясь в комок
-ProteinPenetration(ECTODERM, 0.99);
+ProteinPenetration(ECTODERM, 0.85);
 // Проникающая способность сигнала повреждения - падение на 0,1% на каждую единицу расстояния.
 // Должен работать на большой дистанции, чтобы происходила реагрегация
 ProteinPenetration(REAGGREGATE, 0.999);
+ProteinPenetration(MOUTH, 0.999);
 
 // Случайный элемент к скорости движения клеток для устранения механистичности
 movingSpeed = 0.1 + 0.2 * rnd;
@@ -74,19 +76,19 @@ foreach (Cell cell in surroundingCells)
 if (cellType == ECTODERM)
 {
     // Дифференциация в клетки рта при иммиграции
-    if (P(0.01) && !existsControl && maxLinksReached && sensorReaction[ENDODERM] < 0.1 &&
+/*    if (P(0.01) && !existsControl && maxLinksReached && sensorReaction[ENDODERM] < 0.1 &&
         !inReaggregate)
     {
         cellType = MOUTH;
         Spill(MOUTH);
         return;
-    }
+    }*/
 
     // Дифференциация в клетки эндодермы
-    if (sensorReaction[CONTROL] > 0.025 ||
+    if (sensorReaction[CONTROL] > 0.025 /*||
         (P(0.2) && !existsControl &&
             (sensorReaction[MOUTH] > 0.1 || sensorReaction[ENDODERM] > 0.1) &&
-            (sensorReaction[ENDODERM] < 13)))
+            (sensorReaction[ENDODERM] < 13))*/)
     {
         cellType = ENDODERM;
         Spill(ENDODERM);
@@ -125,13 +127,20 @@ if (cellType == ENDODERM)
     // Если клетка эктодермы находится на расстоянии менее 1 в направлении "наружу" - движения не происходит
     // Если на расстоянии от 1 до 2 - движемся к этой клетке эктодермы
     // Иначе движемся по градиенту вещества, вырабатываемого эктодермой.
-    if (!coveredByEctoderm)
-    {
-        if (closest != null)
-            Move(closest, 0.3, true);
-        else
-            MoveGradient(ECTODERM, true, true, 0.05);
-    }
+//    if (!coveredByEctoderm)
+//    {
+//        if (closest != null)
+//            Move(closest, 0.3, true);
+//        else
+      //if (step < 200) {
+            MoveGradient(ECTODERM, false, true, 0.6);
+            MoveGradient(ENDODERM, false, false, 0.6);
+//      } else if (step == 150) {
+  //        BreakFree();
+ //     } else {
+   //         MoveGradient(ENDODERM, false, false, 1);
+     // }
+//    }
     Spill(ENDODERM);
 }
 
@@ -152,11 +161,13 @@ if (!inReaggregate && P(0.1) && !maxLinksReached && existsEctoderm)
 }
 
 // Клетки рта в данный момент не имеют особого поведения.
-if (cellType == MOUTH) { }
+if (cellType == MOUTH) { 
+    
+    Spill(MOUTH);
+}
 
 // Разделение клеток на слои при иммиграции
 // Клетки эктодермы и эндодермы должны отделиться и связываться вместе только через клетки рта
-if ((existsMouth || existsControl) && cellType != MOUTH) {
     bool linkedEcto = false, linkedEndo = false, linkedMouth = false;
 
     // Определение типов связанных клеток
@@ -168,6 +179,9 @@ if ((existsMouth || existsControl) && cellType != MOUTH) {
         if (cell.cellType == MOUTH)
             linkedMouth = true;
     }
+
+if ((existsMouth || existsControl) && cellType != MOUTH) {
+
 
     if (linkedEcto && linkedEndo) {
         if (linkedMouth || existsControl)
@@ -195,6 +209,11 @@ if (cellType == CONTROL) {
     // Начинает вырабатывать сигнальное вещество, когда связана с достаточным числом клеток в бластуле, но иммиграция не началась.
     if (linkedCells.Count >= 7 && !existsEndoderm)
         Spill(CONTROL);
+
+    if (existsMouth)
+    {
+        cellType = ENDODERM;
+    }
 }
 
 // Недифференциированная клетка
@@ -207,6 +226,16 @@ if (cellType == STEM) {
         SpawnWherever();
 
     Spill(STEM);
+}
+
+if (cellType == MOUTH && step > 150) {
+    if (!linkedEcto) {
+        cellType = ENDODERM;
+        return;
+    }
+
+    Spill(MOUTH);
+    MoveGradient(MOUTH, true, true, 0.5);    
 }
 
 // Превращение "первой" клетки в координатор
