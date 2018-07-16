@@ -38,49 +38,6 @@ namespace EvoDevo3D
         public double[] proteinPenetrations = new double[] {
             0.9, 0.9, 0.9, 0.8, 0.8, 0.8, 0.5, 0.5, 0.5, 1,
             0.9, 0.9, 0.9, 0.8, 0.8, 0.8, 0.5, 0.5, 0.5, 1 };
-        public bool ConcentrationsChanged = false;
-
-        /// <summary>
-        /// Gets concentration of a certain protein in a certain position
-        /// </summary>
-        /// <param name="location">Position to look at</param>
-        /// <param name="secretID">ID of requested protein</param>
-        /// <returns>Concentration</returns>
-        public double GetConcentration(Vector location, int secretID)
-        {
-            double retval = 0;
-            foreach (Source sc in Sources)
-            {
-                if (sc.secretID == secretID)
-                {
-                    retval += sc.strength *
-                        Math.Pow(proteinPenetrations[secretID],
-                            Vector.Distance(sc.position, location));
-                }
-            }
-            return retval;
-        }
-
-        /// <summary>
-        /// Gets concentration of a certain protein in a certain position
-        /// </summary>
-        /// <param name="location">Position to look at</param>
-        /// <param name="secretID">ID of requested protein</param>
-        /// <returns>Concentration</returns>
-        public Vector GetGradient(Vector location, int secretID)
-        {
-            double curConc = 0;
-            Vector retval = new Vector();
-            foreach (Source sc in Sources)
-            {
-                if (sc.secretID == secretID)
-                {
-                    curConc = sc.strength * (Math.Pow(proteinPenetrations[secretID], Vector.Distance(sc.position, location)));
-                    retval += (sc.position - location).Normalize() * curConc;
-                }
-            }
-            return retval.Normalize();
-        }
 
         public void FixOrganizm()
         {
@@ -181,7 +138,6 @@ namespace EvoDevo3D
 
         public Simulation(Type cell)
         {
-            ConcentrationsChanged = true;
             Cell newCell = Cell.GenerateRandomCell(cell, this);
             newCell.radius = 1;
             newCell.position.Trivialize();
@@ -196,7 +152,6 @@ namespace EvoDevo3D
         public void Register(Source source)
         {
             Sources.Add(source);
-            ConcentrationsChanged = true;
         }
 
         public void UnRegister(int ProteinId, Cell cell)
@@ -323,7 +278,6 @@ namespace EvoDevo3D
             
             foreach (Cell cell in TempCells)
             {
-
                 MoveMeAndMySwarm(cell, cell.passiveMovingDirection);
                 /*DeMapCell(cell);
                 cell.position += cell.passiveMovingDirection;
@@ -335,8 +289,6 @@ namespace EvoDevo3D
                 }
                 MapCell(cell);*/
                 cell.passiveMovingDirection.Trivialize();
-
-
             }
 
             foreach (Cell cell in Cells)
@@ -349,35 +301,13 @@ namespace EvoDevo3D
         private void MoveMeAndMySwarm(Cell cell, Vector where)
         {
             if (where.Length > cell.radius * 2) return;
-            List<Cell> totalList = new List<Cell>();
             cell.position += where;
-            if (!ConcentrationsChanged)
-            {
-                for (int i = 0; i < proteinPenetrations.Length; i++)
-                {
-                    if (cell.secrettingNow[i])
-                    {
-                        ConcentrationsChanged = true;
-                        break;
-                    }
-                }
-            }
+
             if (cell.connectedCells.Count > 0)
             {
                 foreach (Cell swarmer in cell.connectedCells)
                 {
                     swarmer.position += where;
-                    if (!ConcentrationsChanged)
-                    {
-                        for (int i = 0; i < proteinPenetrations.Length; i++)
-                        {
-                            if (swarmer.secrettingNow[i])
-                            {
-                                ConcentrationsChanged = true;
-                                break;
-                            }
-                        }
-                    }
                 }
             }
         }
@@ -423,6 +353,25 @@ namespace EvoDevo3D
             foreach (Cell cell in Cells)
             {
                 cell.surroundingCells = GetSurroungingCells(cell);
+
+                for (int secretID = 0; secretID < proteinPenetrations.Length; secretID++)
+                {
+                    double conc = 0;
+                    Vector gradient = new Vector();
+                    foreach (Source sc in Sources)
+                    {
+                        if (sc.secretID == secretID)
+                        {
+                            double curConc = sc.strength *
+                                             Math.Pow(proteinPenetrations[secretID],
+                                                 Vector.Distance(sc.position, cell.position));
+                            gradient += (sc.position - cell.position).Normalize() * curConc;
+                            conc += curConc;
+                        }
+                    }
+                    cell.sensorReaction[secretID] = conc * cell.sensitivity[secretID];
+                    cell.gradient[secretID] = gradient.Normalize();
+                }
             }
             step++;
         }

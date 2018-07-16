@@ -60,39 +60,13 @@ namespace EvoDevo3D
         public double[] secretLevel;
         public bool holdingPosition = false;
         public double[] sensitivity;
-        public Vector[] gradient
-        {
-            get
-            {
-                Vector[] retval = new Vector[secrettingNow.Length];
-                for (int i = 0; i < secrettingNow.Length; i++)
-                {
-                    retval[i] = simulation.GetGradient(position, i);
-                }
-                return retval;
-            }
-        }
-        public double[] _sensorReaction;
-        public double[] sensorReaction
-        {
-            get
-            {
-                if (_sensorReaction != null)
-                    return _sensorReaction;
-
-                _sensorReaction = new double[secrettingNow.Length];
-                for (int i = 0; i < secrettingNow.Length; i++)
-                {
-                    _sensorReaction[i] = simulation.GetConcentration(position, i) * sensitivity[i];
-                }
-                return _sensorReaction;
-            }
-        }
+        public Vector[] gradient;
+        public double[] sensorReaction;
         public int neighbourCount
         {
             get
             {
-                return (simulation.GetMyAdjacentNeighbours(this).Count);
+                return neighbours.Count;
             }
         }
         public List<Cell> connectedCells = new List<Cell>();
@@ -299,11 +273,15 @@ namespace EvoDevo3D
             this.secrettingNow = new bool[simulation.proteinPenetrations.Length];
             this.secretLevel = new double[simulation.proteinPenetrations.Length];
             this.sensitivity = new double[simulation.proteinPenetrations.Length];
+            this.sensorReaction = new double[simulation.proteinPenetrations.Length];
+            this.gradient = new Vector[simulation.proteinPenetrations.Length];
             for (int i = 0; i < simulation.proteinPenetrations.Length; i++)
             {
                 secrettingNow[i] = false;
                 secretLevel[i] = 0.5;
                 sensitivity[i] = 1;
+                sensorReaction[i] = 0;
+                gradient[i] = Vector.Create(random);
             }
             parent = null;
             offspring = new List<Cell>();
@@ -402,7 +380,6 @@ namespace EvoDevo3D
         {
             CellLiveOn();
             age++;
-            _sensorReaction = null;
         }
 
         private Cell CreateNew(Vector newPosition) {
@@ -668,7 +645,7 @@ namespace EvoDevo3D
         /// <returns>Movement direction</returns>
         public Vector MoveGradient(int proteinID, bool force, bool alongGradient, double distance)
         {
-            Vector direction = simulation.GetGradient(this.position, proteinID).Normalize();
+            Vector direction = gradient[proteinID];
             if (gradient.Length < Simulation.ALMOST_ZERO)
             {
                 direction = Vector.Create(random);

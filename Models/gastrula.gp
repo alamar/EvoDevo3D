@@ -106,7 +106,7 @@ if (cellType == ECTODERM)
 // Эндодерма
 if (cellType == ENDODERM)
 {
-    Vector outside = Vector.Invert(simulation.GetGradient(position, ECTODERM)).Normalize(1.0);
+    Vector outside = Vector.Invert(gradient[ECTODERM]).Normalize(1.0);
     bool coveredByEctoderm = false;
     Vector closest = null;
     // Определение "покрытости эктодермой"
