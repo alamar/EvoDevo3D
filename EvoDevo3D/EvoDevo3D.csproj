@@ -45,6 +45,12 @@
     <Reference Include="Troschuetz.Random">
       <HintPath>..\packages\Troschuetz.Random.2.1.1\lib\net40-client\Troschuetz.Random.dll</HintPath>
     </Reference>
+    <Reference Include="RTree">
+      <HintPath>..\packages\RTree.1.0.2.1\lib\RTree.dll</HintPath>
+    </Reference>
+    <Reference Include="log4net">
+      <HintPath>..\packages\log4net.1.2.10\lib\2.0\log4net.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Program.cs" />
