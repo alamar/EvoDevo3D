@@ -1,19 +1,13 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Windows.Forms;
 
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
-using OpenTK.Input;
 
 using EvoDevo3D.Support;
 
@@ -36,6 +30,8 @@ namespace EvoDevo3D
         }
         private Bitmap[] cellBitmap;
         private int[] cellTexture;
+        float[] normals;
+        float[] texcoords;
 
         private Color[] proteinTint;
         int cellSelectionIndex;
@@ -354,7 +350,7 @@ namespace EvoDevo3D
             }
             catch (Exception e)
             {
-                Console.WriteLine("OOPS. Rendering exception occured and was brutally ignored" + e.Message);
+                Console.WriteLine("OOPS. Rendering exception occured and was brutally ignored" + e.ToString());
             }
             finally
             {
@@ -426,6 +422,7 @@ namespace EvoDevo3D
         {
             int visibleCells = 0;
             Vector cameraAt = new Vector(cameraPosition.X, cameraPosition.Y, cameraPosition.Z);
+            ushort count = Sphere(4f);
             foreach (Cell currenttarget in simulation.Cells.Copy().OrderBy(
                 cell => -(cell.position - cameraAt).Length))
             {
@@ -455,7 +452,11 @@ namespace EvoDevo3D
                     (float)currenttarget.position.x,
                     (float)currenttarget.position.y,
                     (float)currenttarget.position.z));
-                Sphere(currenttarget.radius, 4.0);
+                GL.Scale(new Vector3(
+                    (float)currenttarget.radius, 
+                    (float)currenttarget.radius, 
+                    (float)currenttarget.radius));
+                GL.DrawArrays(PrimitiveType.QuadStrip, 0, count);
                 GL.PopMatrix();
             }
             return visibleCells;
@@ -519,48 +520,69 @@ namespace EvoDevo3D
             simulation.Dispose();
         }
 
-        private void Sphere(double r, double repeats)
+        private ushort Sphere(float repeats)
         {
-            int nx = 32, ny = 32;
+            int nx = 32, ny = 33;
             int ix, iy;
-            double x, y, z, sy, cy, sy1, cy1, sx, cx, piy, pix, ay, ay1, ax, tx, ty, ty1, dnx, dny, diy;
-            dnx = 1.0 / (double)nx;
-            dny = 1.0 / (double)ny;
-            GL.Begin(PrimitiveType.QuadStrip);
-            piy = Math.PI * dny;
-            pix = Math.PI * dnx;
+            float x, y, z, sy, cy, sy1, cy1, sx, cx, piy, pix, ay, ay1, ax, tx, ty, ty1, dnx, dny, diy;
+            dnx = 1f / (float)nx;
+            dny = 1f / (float)(ny - 1);
+            //GL.Begin(PrimitiveType.QuadStrip);
+            piy = (float)Math.PI * dny;
+            pix = (float)Math.PI * dnx;
+            normals = new float[nx * ny * 6];
+            texcoords = new float[nx * ny * 4];
+            ushort n = 0, t = 0;
             for (iy = 0; iy < ny; iy++)
             {
-                diy = (double)iy;
+                diy = (float)iy;
                 ay = diy * piy;
-                sy = Math.Sin(ay);
-                cy = Math.Cos(ay);
+                sy = (float)Math.Sin(ay);
+                cy = (float)Math.Cos(ay);
                 ty = diy * dny;
                 ay1 = ay + piy;
-                sy1 = Math.Sin(ay1);
-                cy1 = Math.Cos(ay1);
+                sy1 = (float)Math.Sin(ay1);
+                cy1 = (float)Math.Cos(ay1);
                 ty1 = ty + dny;
-                for (ix = 0; ix <= nx; ix++)
+                for (ix = 0; ix < nx; ix++)
                 {
-                    ax = 2.0 * ix * pix;
-                    sx = Math.Sin(ax);
-                    cx = Math.Cos(ax);
-                    x = r * sy * cx;
-                    y = r * sy * sx;
-                    z = -r * cy;
-                    tx = (double)ix * dnx;
-                    GL.Normal3(x, y, z);
-                    GL.TexCoord2(tx * repeats, ty * repeats);
-                    GL.Vertex3(x, y, z);
-                    x = r * sy1 * cx;
-                    y = r * sy1 * sx;
-                    z = -r * cy1;
-                    GL.Normal3(x, y, z);
-                    GL.TexCoord2(tx * repeats, ty1 * repeats);
-                    GL.Vertex3(x, y, z);
+                    ax = 2f * ix * pix;
+                    sx = (float)Math.Sin(ax);
+                    cx = (float)Math.Cos(ax);
+                    x = sy * cx;
+                    y = sy * sx;
+                    z = -cy;
+                    tx = (float)ix * dnx;
+                    normals[n++] = x;
+                    normals[n++] = y;
+                    normals[n++] = z;
+                    //GL.Normal3(x, y, z);
+                    texcoords[t++] = tx * repeats;
+                    texcoords[t++] = ty * repeats;
+                    //GL.TexCoord2(tx * repeats, ty * repeats);
+                    //GL.Vertex3(x, y, z);
+                    x = sy1 * cx;
+                    y = sy1 * sx;
+                    z = -cy1;
+                    normals[n++] = x;
+                    normals[n++] = y;
+                    normals[n++] = z;
+
+                    //GL.Normal3(x, y, z);
+                    texcoords[t++] = tx * repeats;
+                    texcoords[t++] = ty1 * repeats;
+                    //GL.TexCoord2(tx * repeats, ty1 * repeats);
+                    //GL.Vertex3(x, y, z);
                 }
             }
-            GL.End();
+            GL.EnableClientState(ArrayCap.VertexArray);
+            GL.EnableClientState(ArrayCap.NormalArray);
+            GL.EnableClientState(ArrayCap.TextureCoordArray);
+            GL.NormalPointer(NormalPointerType.Float, 12, normals);
+            GL.TexCoordPointer(2, TexCoordPointerType.Float, 8,  texcoords);
+            GL.VertexPointer(3, VertexPointerType.Float, 12, normals);
+            //GL.End();
+            return (ushort)(nx * ny * 2);
         }
     }
 }
