@@ -328,7 +328,7 @@ namespace EvoDevo3D
         {
             get
             {
-                List<Cell> touchingCells = simulation.GetMyAdjacentNeighbours(this);
+                List<Cell> touchingCells = neighbours;
                 
                 int fi1Sections = 4;
                 int fi2Sections = 4;

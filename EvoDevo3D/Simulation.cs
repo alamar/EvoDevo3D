@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using RTree;
 
 using EvoDevo3D.Support;
@@ -330,24 +331,71 @@ namespace EvoDevo3D
             }
         }
 
-        public List<Cell> GetSurroungingCells(Cell cell, RTree<Cell> cells)
+        public List<Task> SurroungingCells()
         {
-            float range = (float)cell.radius * 6;
-            List<Cell> retval = new List<Cell>();
-
-            foreach (Cell cellmate in cells.Intersects (new Rectangle (
-                            (float)cell.position.x - range, (float)cell.position.y - range,
-                            (float)cell.position.x + range, (float)cell.position.y + range,
-                            (float)cell.position.z - range, (float)cell.position.z + range)))
+            RTree<Cell> rtree = new RTree<Cell>();
+            foreach (Cell cell in Cells)
             {
-                double dist = Vector.Distance(cell.position, cellmate.position);
-                if (dist > ALMOST_ZERO && dist < range)
-                {
-                    retval.Add(cellmate);
-                }
+                Vector position = cell.position;
+                rtree.Add(new Rectangle(
+                    (float)position.x, (float)position.y,
+                    (float)position.x, (float)position.y,
+                    (float)position.z, (float)position.z), cell);
             }
 
-            return retval.OrderBy(other => (cell.position - other.position).Length).ToList();
+            List<Task> result = new List<Task>();
+            for (int i = 0; i < Cells.Count(); i += 100)
+            {
+                result.Add(Task.Run(() => {
+                    foreach (Cell cell in Cells) {
+                        float range = (float)cell.radius * 6;
+                        List<Cell> retval = new List<Cell>();
+
+                        foreach (Cell cellmate in rtree.Intersects(new Rectangle (
+                                        (float)cell.position.x - range, (float)cell.position.y - range,
+                                        (float)cell.position.x + range, (float)cell.position.y + range,
+                                        (float)cell.position.z - range, (float)cell.position.z + range)))
+                        {
+                            double dist = Vector.Distance(cell.position, cellmate.position);
+                            if (dist > ALMOST_ZERO && dist < range)
+                            {
+                                retval.Add(cellmate);
+                            }
+                        }
+
+                        cell.surroundingCells = retval.OrderBy(other => (cell.position - other.position).Length).ToList();
+                    }
+                }));
+            }
+            return result;
+        }
+
+        private Task Secret(RTree<Source> [] secrets, int secretID)
+        {
+            return Task.Run(() => {
+                foreach (Cell cell in Cells) {
+                    float range = (float)Math.Log (ALMOST_ZERO) / (float)Math.Log (proteinPenetrations [secretID]);
+                    double conc = 0;
+                    Vector gradient = new Vector ();
+                    Vector position = cell.position;
+                    foreach (Source sc in secrets[secretID].Intersects(new Rectangle (
+                        (float)position.x - range, (float)position.y - range,
+                        (float)position.x + range, (float)position.y + range,
+                        (float)position.z - range, (float)position.z + range))) {
+                        if (sc.secretID == secretID) {
+                            double curConc = sc.strength *
+                                               Math.Pow(proteinPenetrations[secretID],
+                                                       Vector.Distance(sc.position, position));
+                            if (curConc > ALMOST_ZERO) {
+                                gradient += (sc.position - position).Normalize () * curConc;
+                                conc += curConc;
+                            }
+                        }
+                    }
+                    cell.sensorReaction[secretID] = conc * cell.sensitivity[secretID];
+                    cell.gradient[secretID] = gradient.Normalize();
+                }
+            });
         }
 
         public void GeneticTick()
@@ -357,6 +405,7 @@ namespace EvoDevo3D
                 cell.LiveOn();                
             }
 
+            List<Task> tasks = new List<Task>();
             RTree<Cell> cells = new RTree<Cell>();
             RTree<Source>[] secrets = new RTree<Source>[proteinPenetrations.Length];
 
@@ -367,51 +416,23 @@ namespace EvoDevo3D
 
             foreach (Source sc in Sources)
             {
-                secrets[sc.secretID].Add(new Rectangle(
-                    (float)sc.position.x, (float)sc.position.y,
-                    (float)sc.position.x, (float)sc.position.y,
-                    (float)sc.position.z, (float)sc.position.z), sc);
+                Vector position = sc.position;
+                secrets [sc.secretID].Add (new Rectangle (
+                    (float)position.x, (float)position.y,
+                    (float)position.x, (float)position.y,
+                    (float)position.z, (float)position.z), sc);
             }
 
-            foreach (Cell cell in Cells)
-            {
-                cells.Add(new Rectangle(
-                    (float)cell.position.x, (float)cell.position.y,
-                    (float)cell.position.x, (float)cell.position.y,
-                    (float)cell.position.z, (float)cell.position.z), cell);
+            tasks.AddRange(SurroungingCells());
+
+            for (int secretID = 0; secretID < proteinPenetrations.Length; secretID++) {
+                tasks.Add(Secret(secrets, secretID));
             }
 
-            foreach (Cell cell in Cells)
-            {
-                cell.surroundingCells = GetSurroungingCells(cell, cells);
-
-                for (int secretID = 0; secretID < proteinPenetrations.Length; secretID++)
-                {
-                    float range = (float)Math.Log(ALMOST_ZERO) / (float)Math.Log(proteinPenetrations[secretID]);
-                    double conc = 0;
-                    Vector gradient = new Vector();
-
-                    foreach (Source sc in secrets[secretID].Intersects(new Rectangle(
-                            (float)cell.position.x - range, (float)cell.position.y - range,
-                            (float)cell.position.x + range, (float)cell.position.y + range,
-                            (float)cell.position.z - range, (float)cell.position.z + range)))
-                    {
-                        if (sc.secretID == secretID)
-                        {
-                            double curConc = sc.strength *
-                                             Math.Pow(proteinPenetrations[secretID],
-                                                 Vector.Distance(sc.position, cell.position));
-                            if (curConc > ALMOST_ZERO)
-                            {
-                                gradient += (sc.position - cell.position).Normalize() * curConc;
-                                conc += curConc;
-                            }
-                        }
-                    }
-                    cell.sensorReaction[secretID] = conc * cell.sensitivity[secretID];
-                    cell.gradient[secretID] = gradient.Normalize();
-                }
+            foreach (Task task in tasks) {
+                task.Wait();
             }
+
             step++;
         }
 
