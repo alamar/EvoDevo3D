@@ -84,6 +84,21 @@ namespace EvoDevo3D
             return (retval);
         }*/
 
+        public List<Task> AjacentNeighbours()
+        {
+            List<Task> result = new List<Task>();
+            for (int i = 0; i < Cells.Count(); i += 100)
+            {
+                int ii = i;
+                result.Add(Task.Run(() => {
+                    foreach (Cell cell in Cells.Skip(ii).Take(100)) {
+                        cell.neighbours = GetMyAdjacentNeighbours(cell);
+                    }
+                }));
+            }
+            return result;
+        }
+
         /// <summary>
         /// Returns the list of cells touching or hidden within the given cell
         /// </summary>
@@ -292,9 +307,9 @@ namespace EvoDevo3D
                 cell.passiveMovingDirection.Trivialize();
             }
 
-            foreach (Cell cell in Cells)
+            foreach (Task task in AjacentNeighbours())
             {
-                cell.neighbours = GetMyAdjacentNeighbours(cell);
+                task.Wait();
             }
         }
 
@@ -346,24 +361,26 @@ namespace EvoDevo3D
             List<Task> result = new List<Task>();
             for (int i = 0; i < Cells.Count(); i += 100)
             {
+                int ii = i;
                 result.Add(Task.Run(() => {
-                    foreach (Cell cell in Cells) {
+                    foreach (Cell cell in Cells.Skip(ii).Take(100)) {
                         float range = (float)cell.radius * 6;
                         List<Cell> retval = new List<Cell>();
+                        Vector position = cell.position;
 
-                        foreach (Cell cellmate in rtree.Intersects(new Rectangle (
-                                        (float)cell.position.x - range, (float)cell.position.y - range,
-                                        (float)cell.position.x + range, (float)cell.position.y + range,
-                                        (float)cell.position.z - range, (float)cell.position.z + range)))
+                        foreach (Cell cellmate in rtree.Intersects(new Rectangle(
+                                        (float)position.x - range, (float)position.y - range,
+                                        (float)position.x + range, (float)position.y + range,
+                                        (float)position.z - range, (float)position.z + range)))
                         {
-                            double dist = Vector.Distance(cell.position, cellmate.position);
+                            double dist = Vector.Distance(position, cellmate.position);
                             if (dist > ALMOST_ZERO && dist < range)
                             {
                                 retval.Add(cellmate);
                             }
                         }
 
-                        cell.surroundingCells = retval.OrderBy(other => (cell.position - other.position).Length).ToList();
+                        cell.surroundingCells = retval.OrderBy(other => (position - other.position).Length).ToList();
                     }
                 }));
             }
