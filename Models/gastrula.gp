@@ -243,3 +243,73 @@ if (CONTROL_CELL && step == 0) {
     SpawnWherever();
     cellType = CONTROL;
 }
+
+Appraisal = (cells) =>
+{
+    Vector avgPosition = new Vector(0, 0, 0);
+    double totalEndoderm = 0;
+    double totalEctoderm = 0;
+    double totalMouth = 0;
+    foreach (Cell cell in cells) {
+        avgPosition += cell.position;
+        if (cell.cellType == ENDODERM) totalEndoderm++;
+        if (cell.cellType == ECTODERM) totalEctoderm++;
+        if (cell.cellType == MOUTH) totalMouth++;
+    }
+    avgPosition /= cells.Count;
+
+    double avgDistance = 0;
+    foreach (Cell cell in cells) {
+        avgDistance += (cell.position - avgPosition).Length;
+    }
+    avgDistance /= cells.Count;
+
+    if (avgDistance < Simulation.ALMOST_ZERO) return null;
+
+    double posq = 0;
+    foreach (Cell cell in cells) {
+        double delta = (cell.position - avgPosition).Length;
+
+        if (cell.cellType == ENDODERM) delta += 1;
+        if (cell.cellType == ECTODERM) delta -= 1;
+
+        if (delta < 2 && delta > -2)
+            posq += 1;
+        else
+        {
+            delta /= avgDistance;
+            posq += delta > 1 ? (1 / delta) : delta;
+        }
+    }
+    posq *= 0.75;
+
+    double typeq = 0;
+    totalEndoderm /= cells.Count;
+    if (totalEndoderm > 0.25 && totalEndoderm < 0.4)
+        typeq += 0.1;
+    else
+    {
+        totalEndoderm /= 0.33;
+        typeq += 0.1 * (totalEndoderm > 1 ? (1 / totalEndoderm) : totalEndoderm);
+    }
+
+    if (totalEctoderm > 0.5 && totalEctoderm < 0.7)
+        typeq += 0.1;
+    else
+    {
+        totalEctoderm /= 0.66;
+        typeq += 0.1 * (totalEctoderm > 1 ? (1 / totalEctoderm) : totalEctoderm);
+    }
+
+    if (totalMouth > 0.02 && totalMouth < 0.08)
+        typeq += 0.05;
+    else
+    {
+        totalMouth /= 0.05;
+        typeq += 0.05 * (totalMouth > 1 ? (1 / totalMouth) : totalMouth);
+    }
+
+    return "Quality: " + (typeq + posq / cells.Count);
+};
+
+

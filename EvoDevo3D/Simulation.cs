@@ -37,6 +37,7 @@ namespace EvoDevo3D
 
         public List<Cell> Cells = new List<Cell>();
         public List<Source> Sources = new List<Source>();
+        public String Caption = null;
         public double[] proteinPenetrations = new double[] {
             0.9, 0.9, 0.9, 0.8, 0.8, 0.8, 0.5, 0.5, 0.5, 1,
             0.9, 0.9, 0.9, 0.8, 0.8, 0.8, 0.5, 0.5, 0.5, 1 };
@@ -449,6 +450,9 @@ namespace EvoDevo3D
             foreach (Task task in tasks) {
                 task.Wait();
             }
+
+            Cell firstCell = Cells[0];
+            Caption = (firstCell.Appraisal == null ? null : firstCell.Appraisal(Cells));
 
             step++;
         }

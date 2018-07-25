@@ -320,7 +320,9 @@ namespace EvoDevo3D
             if (!forScreenshot)
             {
                 //DrawConcentrations();
-                FindForm().Text = "Age: " + simulation.Cells[0].age + " Cells: " + visibleCells;
+                Cell firstCell = simulation.Cells[0];
+                FindForm().Text = "Age: " + firstCell.age + " Cells: " + visibleCells
+                    + (simulation.Caption == null ? "" : (", " + simulation.Caption));
             }
         }
  

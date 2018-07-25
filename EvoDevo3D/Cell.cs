@@ -14,6 +14,8 @@ using Troschuetz.Random;
 
 namespace EvoDevo3D
 {
+    public delegate String appraisal(List<Cell> cells);
+
     public abstract class Cell
     {
         public static int counter = 0;
@@ -74,6 +76,7 @@ namespace EvoDevo3D
         public List<Cell> offspring = new List<Cell>();
         public Cell parent;
         public Cell lastOffspring;
+        public appraisal Appraisal;
 
         public static TRandom Random
         {
