@@ -76,19 +76,19 @@ foreach (Cell cell in surroundingCells)
 if (cellType == ECTODERM)
 {
     // Дифференциация в клетки рта при иммиграции
-/*    if (P(0.01) && !existsControl && maxLinksReached && sensorReaction[ENDODERM] < 0.1 &&
+    if (P(0.01) && !existsControl && maxLinksReached && sensorReaction[ENDODERM] < 0.1 &&
         !inReaggregate)
     {
         cellType = MOUTH;
         Spill(MOUTH);
         return;
-    }*/
+    }
 
     // Дифференциация в клетки эндодермы
-    if (sensorReaction[CONTROL] > 0.025 /*||
+    if (sensorReaction[CONTROL] > 0.025 ||
         (P(0.2) && !existsControl &&
             (sensorReaction[MOUTH] > 0.1 || sensorReaction[ENDODERM] > 0.1) &&
-            (sensorReaction[ENDODERM] < 13))*/)
+            (sensorReaction[ENDODERM] < 13)))
     {
         cellType = ENDODERM;
         Spill(ENDODERM);
