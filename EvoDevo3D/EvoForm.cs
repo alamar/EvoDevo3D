@@ -43,7 +43,6 @@ namespace EvoDevo3D
             evoArea.Location = new System.Drawing.Point(0, renderToolStrip.Height);
             this.Controls.Add(evoArea);
             OnResize(null);
-            KeyDown += evoArea.Keyboard_KeyDown;
 
             refresher = new System.Windows.Forms.Timer();
             refresher.Interval = 250;

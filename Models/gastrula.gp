@@ -207,7 +207,7 @@ if (cellType == CONTROL) {
         MoveFromTheCrowd(false, 0.15);
 
     // Начинает вырабатывать сигнальное вещество, когда связана с достаточным числом клеток в бластуле, но иммиграция не началась.
-    if (linkedCells.Count >= 7 && !existsEndoderm)
+    if (linkedCells.Count >= 5 && !existsEndoderm)
         Spill(CONTROL);
 
     if (existsMouth)
@@ -309,7 +309,7 @@ Appraisal = (cells) =>
         typeq += 0.05 * (totalMouth > 1 ? (1 / totalMouth) : totalMouth);
     }
 
-    return "Quality: " + (typeq + posq / cells.Count);
+    return "Quality: " + (typeq + posq / cells.Count).ToString("F02");
 };
 
 

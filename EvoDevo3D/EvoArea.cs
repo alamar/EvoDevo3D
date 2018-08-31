@@ -50,6 +50,7 @@ namespace EvoDevo3D
         public EvoArea()
         {
             KeyDown += Keyboard_KeyDown;
+            PreviewKeyDown += Keyboard_PreviewKeyDown;
             BackColor = Color.LightGray;
         }
 
@@ -76,6 +77,13 @@ namespace EvoDevo3D
         public void Screenshot()
         {
             screenshotAwaiting = true;
+        }
+
+
+        public void Keyboard_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
+        {
+            if (e.KeyCode == Keys.Right || e.KeyCode == Keys.Left || e.KeyCode == Keys.Up || e.KeyCode == Keys.Down)
+                e.IsInputKey = true;
         }
 
         public void Keyboard_KeyDown(object sender, KeyEventArgs e)
