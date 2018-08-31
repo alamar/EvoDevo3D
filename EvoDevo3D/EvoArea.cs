@@ -285,22 +285,6 @@ namespace EvoDevo3D
             visibility = Enumerable.Repeat(true, 10).ToArray();
         }
 
-        /*protected override void Update(GameTime gameTime)
-        {
-            base.Update(gameTime);
-            simulation.newActionAllowed = true;
-
-            int stdin;
-            HandleKeyboard(Keyboard.GetState(), 
-                buffer.TryTake(out stdin, 0) ? stdin : 0);
-        }
-
-        protected override void OnExiting(Object sender, EventArgs args)
-        {
-            base.OnExiting(sender, args);
-            Environment.Exit(0);
-        }*/
-
         private void DoDraw(bool forScreenshot)
         {
             Resize();
@@ -322,8 +306,6 @@ namespace EvoDevo3D
             int visibleCells = DrawCells();
             GL.Disable(EnableCap.Texture2D);
             this.SwapBuffers();
-            //GraphicsDevice.Clear(Color.LightGray);
-
 
             if (!forScreenshot)
             {
@@ -373,8 +355,6 @@ namespace EvoDevo3D
 
         private void PlaceCamera()
         {
-            //effect.EnableDefaultLighting();
-
             Matrix4 modelview = Matrix4.LookAt(cameraPosition, cameraLooksAt, upVector);
             GL.MatrixMode(MatrixMode.Modelview);
             GL.LoadMatrix(ref modelview);
@@ -537,7 +517,6 @@ namespace EvoDevo3D
             float x, y, z, sy, cy, sy1, cy1, sx, cx, piy, pix, ay, ay1, ax, tx, ty, ty1, dnx, dny, diy;
             dnx = 1f / (float)nx;
             dny = 1f / (float)(ny - 1);
-            //GL.Begin(PrimitiveType.QuadStrip);
             piy = (float)Math.PI * dny;
             pix = (float)Math.PI * dnx;
             normals = new float[nx * ny * 6];
@@ -566,11 +545,8 @@ namespace EvoDevo3D
                     normals[n++] = x;
                     normals[n++] = y;
                     normals[n++] = z;
-                    //GL.Normal3(x, y, z);
                     texcoords[t++] = tx * repeats;
                     texcoords[t++] = ty * repeats;
-                    //GL.TexCoord2(tx * repeats, ty * repeats);
-                    //GL.Vertex3(x, y, z);
                     x = sy1 * cx;
                     y = sy1 * sx;
                     z = -cy1;
@@ -578,11 +554,8 @@ namespace EvoDevo3D
                     normals[n++] = y;
                     normals[n++] = z;
 
-                    //GL.Normal3(x, y, z);
                     texcoords[t++] = tx * repeats;
                     texcoords[t++] = ty1 * repeats;
-                    //GL.TexCoord2(tx * repeats, ty1 * repeats);
-                    //GL.Vertex3(x, y, z);
                 }
             }
             GL.EnableClientState(ArrayCap.VertexArray);
@@ -591,7 +564,6 @@ namespace EvoDevo3D
             GL.NormalPointer(NormalPointerType.Float, 12, normals);
             GL.TexCoordPointer(2, TexCoordPointerType.Float, 8,  texcoords);
             GL.VertexPointer(3, VertexPointerType.Float, 12, normals);
-            //GL.End();
             return (ushort)(nx * ny * 2);
         }
     }
