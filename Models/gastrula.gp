@@ -285,6 +285,8 @@ Appraisal = (cells) =>
 
     double typeq = 0;
     totalEndoderm /= cells.Count;
+    totalEctoderm /= cells.Count;
+    totalMouth /= cells.Count;
     if (totalEndoderm > 0.25 && totalEndoderm < 0.4)
         typeq += 0.1;
     else
