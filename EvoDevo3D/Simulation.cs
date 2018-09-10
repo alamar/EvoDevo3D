@@ -91,7 +91,7 @@ namespace EvoDevo3D
             for (int i = 0; i < Cells.Count(); i += 100)
             {
                 int ii = i;
-                result.Add(Task.Run(() => {
+                result.Add(Task.Factory.StartNew(() => {
                     foreach (Cell cell in Cells.Skip(ii).Take(100)) {
                         cell.neighbours = GetMyAdjacentNeighbours(cell);
                     }
@@ -363,7 +363,7 @@ namespace EvoDevo3D
             for (int i = 0; i < Cells.Count(); i += 100)
             {
                 int ii = i;
-                result.Add(Task.Run(() => {
+                result.Add(Task.Factory.StartNew(() => {
                     foreach (Cell cell in Cells.Skip(ii).Take(100)) {
                         float range = (float)cell.radius * 6;
                         List<Cell> retval = new List<Cell>();
@@ -390,7 +390,7 @@ namespace EvoDevo3D
 
         private Task Secret(RTree<Source> [] secrets, int secretID)
         {
-            return Task.Run(() => {
+            return Task.Factory.StartNew(() => {
                 foreach (Cell cell in Cells) {
                     float range = (float)Math.Log (ALMOST_ZERO) / (float)Math.Log (proteinPenetrations [secretID]);
                     double conc = 0;

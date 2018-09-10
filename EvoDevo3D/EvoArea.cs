@@ -408,46 +408,56 @@ namespace EvoDevo3D
             graphics.GraphicsDevice.BlendState = BlendState.Opaque;
         }*/
 
-        private int DrawCells()
+        private unsafe int DrawCells()
         {
             int visibleCells = 0;
             Vector cameraAt = new Vector(cameraPosition.X, cameraPosition.Y, cameraPosition.Z);
             ushort count = Sphere(4f);
-            foreach (Cell currenttarget in simulation.Cells.Copy().OrderBy(
-                cell => -(cell.position - cameraAt).Length))
-            {
-                if (currenttarget.cellType >= 0
-                        && currenttarget.cellType < visibility.Length
-                        && !visibility[currenttarget.cellType])
-                {
-                   continue;
+            fixed (float* norm = normals) {
+                fixed (float* texc = texcoords) {
+                    GL.EnableClientState(ArrayCap.VertexArray);
+                    GL.EnableClientState(ArrayCap.NormalArray);
+                    GL.EnableClientState(ArrayCap.TextureCoordArray);
+                    GL.NormalPointer(NormalPointerType.Float, 12, new IntPtr(norm));
+                    GL.TexCoordPointer(2, TexCoordPointerType.Float, 8, new IntPtr(texc));
+                    GL.VertexPointer(3, VertexPointerType.Float, 12, new IntPtr(norm));
+                    foreach (Cell currenttarget in simulation.Cells.Copy().OrderBy(
+                        cell => -(cell.position - cameraAt).Length))
+                    {
+                        if (currenttarget.cellType >= 0
+                                && currenttarget.cellType < visibility.Length
+                                && !visibility[currenttarget.cellType])
+                        {
+                           continue;
+                        }
+
+                        visibleCells++;
+
+                        int currentTexture;
+                        if (currenttarget.cellType > 0 && currenttarget.cellType < 10)
+                        {
+                            currentTexture = cellTexture[currenttarget.cellType];
+                        }
+                        else
+                        {
+                            currentTexture = cellTexture[0];
+                        }
+
+                        GL.BindTexture(TextureTarget.Texture2D, currentTexture);
+
+                        GL.PushMatrix();
+                        GL.Translate(new Vector3(
+                            (float)currenttarget.position.x,
+                            (float)currenttarget.position.y,
+                            (float)currenttarget.position.z));
+                        GL.Scale(new Vector3(
+                            (float)currenttarget.radius, 
+                            (float)currenttarget.radius, 
+                            (float)currenttarget.radius));
+                        GL.DrawArrays(PrimitiveType.QuadStrip, 0, count);
+                        GL.PopMatrix();
+                    }
                 }
-
-                visibleCells++;
-
-                int currentTexture;
-                if (currenttarget.cellType > 0 && currenttarget.cellType < 10)
-                {
-                    currentTexture = cellTexture[currenttarget.cellType];
-                }
-                else
-                {
-                    currentTexture = cellTexture[0];
-                }
-
-                GL.BindTexture(TextureTarget.Texture2D, currentTexture);
-
-                GL.PushMatrix();
-                GL.Translate(new Vector3(
-                    (float)currenttarget.position.x,
-                    (float)currenttarget.position.y,
-                    (float)currenttarget.position.z));
-                GL.Scale(new Vector3(
-                    (float)currenttarget.radius, 
-                    (float)currenttarget.radius, 
-                    (float)currenttarget.radius));
-                GL.DrawArrays(PrimitiveType.QuadStrip, 0, count);
-                GL.PopMatrix();
             }
             return visibleCells;
         }
@@ -558,12 +568,6 @@ namespace EvoDevo3D
                     texcoords[t++] = ty1 * repeats;
                 }
             }
-            GL.EnableClientState(ArrayCap.VertexArray);
-            GL.EnableClientState(ArrayCap.NormalArray);
-            GL.EnableClientState(ArrayCap.TextureCoordArray);
-            GL.NormalPointer(NormalPointerType.Float, 12, normals);
-            GL.TexCoordPointer(2, TexCoordPointerType.Float, 8,  texcoords);
-            GL.VertexPointer(3, VertexPointerType.Float, 12, normals);
             return (ushort)(nx * ny * 2);
         }
     }
